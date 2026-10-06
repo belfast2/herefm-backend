@@ -106,6 +106,9 @@ export async function resolveArtist(artist, { clientId, clientSecret }) {
 }
 
 // Fetch public artist details (image, genres, top tracks) for the card UI.
+// NOTE: Spotify removed GET /artists/{id}/top-tracks in Feb 2026, so "top
+// tracks" is rebuilt from Search instead: the artist's most popular tracks,
+// verified by artist ID so a name collision can't sneak another act's songs in.
 export async function enrichArtist(spotifyId, { clientId, clientSecret }) {
   if (!spotifyId || !clientId || !clientSecret) return null;
   const cacheKey = `spotify-enrich:${spotifyId}`;
@@ -113,26 +116,40 @@ export async function enrichArtist(spotifyId, { clientId, clientSecret }) {
   if (cached) return cached;
   const token = await getToken(clientId, clientSecret);
   const headers = { Authorization: `Bearer ${token}` };
-  const [artistRes, tracksRes] = await Promise.all([
-    fetch(`${API}/artists/${spotifyId}`, { headers }),
-    fetch(`${API}/artists/${spotifyId}/top-tracks?market=CA`, { headers }),
-  ]);
+  const artistRes = await fetch(`${API}/artists/${spotifyId}`, { headers });
   if (!artistRes.ok) return null;
   const a = await artistRes.json();
-  const tracks = tracksRes.ok ? (await tracksRes.json()).tracks ?? [] : [];
+  const topTracks = await artistTopTracksViaSearch(a.name, spotifyId, headers);
   const out = {
     image: a.images?.[0]?.url || null,
     genres: a.genres ?? [],
     followers: a.followers?.total ?? null,
     popularity: a.popularity ?? null,
-    topTracks: tracks.slice(0, 5).map((t) => ({
-      name: t.name,
-      previewUrl: t.preview_url,
-      spotifyUrl: t.external_urls?.spotify || null,
-    })),
+    topTracks,
   };
   cacheSet(cacheKey, out, 24 * 60 * 60 * 1000);
   return out;
+}
+
+async function artistTopTracksViaSearch(artistName, spotifyId, headers) {
+  try {
+    const q = encodeURIComponent(`artist:"${artistName}"`);
+    const res = await fetch(`${API}/search?q=${q}&type=track&market=CA&limit=10`, { headers });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items = data?.tracks?.items ?? [];
+    return items
+      .filter((t) => t && (t.artists || []).some((ar) => ar.id === spotifyId))
+      .sort((x, y) => (y.popularity || 0) - (x.popularity || 0))
+      .slice(0, 5)
+      .map((t) => ({
+        name: t.name,
+        previewUrl: t.preview_url || null,
+        spotifyUrl: t.external_urls?.spotify || null,
+      }));
+  } catch (err) {
+    return [];
+  }
 }
 
 export function artistUrl(id) {

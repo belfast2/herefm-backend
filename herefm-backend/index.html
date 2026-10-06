@@ -224,13 +224,16 @@
     .step-controls { display: grid; grid-template-columns: 42px 92px minmax(76px, 1fr) 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
     .step-button { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 17px; transition: color .2s ease, border-color .2s ease; }
     .step-button:hover { border-color: var(--acid); color: var(--acid); }
-    .tune-knob { width: 88px; height: 88px; position: relative; border: 2px solid #080907; border-radius: 50%; background: repeating-radial-gradient(circle at 36% 34%, #444a40 0 2px, #23271f 3px 6px); color: var(--acid); box-shadow: 0 8px 18px rgba(0,0,0,.56), inset 2px 2px 3px rgba(255,255,255,.16), 0 0 0 4px #151812, 0 0 0 5px #42473f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
+    .tune-knob { width: 92px; height: 92px; position: relative; border: 3px solid #0b0906; border-radius: 50%; background: repeating-conic-gradient(from -6deg, #3b342a 0deg 7deg, #211c14 7deg 14deg); box-shadow: 0 10px 22px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,.22), inset 0 -6px 10px rgba(0,0,0,.55), 0 0 0 5px #161310, 0 0 0 6px #57503f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
     .tune-knob:active { cursor: grabbing; }
-    .tune-knob span { width: 3px; height: 26px; position: absolute; left: 50%; top: 8px; border-radius: 2px; background: currentColor; box-shadow: 0 0 7px currentColor; transform: translateX(-50%); }
-    .signal { height: 24px; display: flex; align-items: end; justify-self: end; gap: 4px; color: var(--radio-muted); font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    .signal i { width: 3px; display: block; background: var(--orange); animation: signal 1.15s ease-in-out infinite alternate; }
-    .signal i:nth-child(1) { height: 7px; } .signal i:nth-child(2) { height: 13px; animation-delay: -.35s; } .signal i:nth-child(3) { height: 19px; animation-delay: -.7s; }
-    .signal span { margin-left: 5px; } @keyframes signal { to { transform: scaleY(.42); opacity: .45; } }
+    .tune-knob::before { content: ""; position: absolute; inset: 27%; border-radius: 50%; background: radial-gradient(circle at 38% 30%, #e3c078 0%, #a37c3a 52%, #6b4d22 100%); box-shadow: inset 0 2px 3px rgba(255,255,255,.55), inset 0 -2px 4px rgba(0,0,0,.45), 0 2px 5px rgba(0,0,0,.5); }
+    .tune-knob span { width: 5px; height: 30px; position: absolute; z-index: 1; left: 50%; top: 5px; border-radius: 3px; background: #f7efdc; box-shadow: 0 0 8px rgba(247,239,220,.8), 0 1px 2px rgba(0,0,0,.6); transform: translateX(-50%); }
+    .signal { height: 26px; display: flex; align-items: end; justify-self: end; gap: 8px; color: var(--radio-muted); font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .sig-bars { display: flex; align-items: flex-end; gap: 4px; height: 24px; }
+    .sig-bars i { width: 4px; display: block; border-radius: 2px; background: rgba(245,244,235,.16); transition: background .5s ease, box-shadow .5s ease; }
+    .sig-bars i:nth-child(1) { height: 7px; } .sig-bars i:nth-child(2) { height: 12px; } .sig-bars i:nth-child(3) { height: 17px; } .sig-bars i:nth-child(4) { height: 22px; }
+    .sig-bars i.on { background: var(--acid); box-shadow: 0 0 7px rgba(201,255,63,.55); }
+    .sig-label { margin-left: 2px; white-space: nowrap; }
     .stage { min-width: 0; position: relative; display: flex; flex-direction: column; padding: clamp(24px, 4vw, 48px) 0 clamp(24px, 4vw, 48px) clamp(24px, 5vw, 74px); }
     .stage-status { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 18px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .stage-status strong { color: var(--ink); font-weight: 700; }
@@ -248,6 +251,7 @@
     .artist-card:nth-child(3) .front::before { width: 62%; border-width: 3px; box-shadow: 0 0 0 24px currentColor, 0 0 0 52px var(--shape); right: -8%; top: 19%; } .artist-card:nth-child(3) .front::after { width: 18%; height: 125%; left: 27%; transform: rotate(29deg); }
     .artist-card:nth-child(4) .front::before { width: 105%; right: -42%; top: -22%; border-width: 42px; } .artist-card:nth-child(4) .front::after { width: 70%; height: 42%; left: -18%; top: 58%; transform: rotate(-8deg); }
     .card-meta, .card-title { position: relative; z-index: 1; } .card-meta { display: flex; justify-content: space-between; gap: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .card-title::before, .card-meta::before { content: ""; position: absolute; z-index: -1; inset: -18px -26px; background: radial-gradient(ellipse at 34% 66%, var(--card-bg) 24%, transparent 74%); pointer-events: none; }
     .card-title small { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .card-title strong { display: block; max-width: 94%; font-family: "Anton", sans-serif; font-size: clamp(60px, 7.4vw, 106px); font-weight: 400; line-height: .86; letter-spacing: -.025em; text-transform: uppercase; }
     .card-title span { display: flex; align-items: center; gap: 9px; margin-top: 18px; font-size: 13px; font-weight: 700; } .card-title span::after { content: "↗"; font-size: 18px; }
@@ -261,6 +265,8 @@
     .song .num { color: #858e7f; font-size: 11px; } .song strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; } .song .tag { color: #9fa898; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
     .back-note { margin: auto 0 0; padding-top: 18px; color: #9fa898; font-size: 10px; letter-spacing: .04em; }
     .artist-card.is-flipped .card-inner { transform: rotateY(180deg); } .artist-card.is-flipped .front { opacity: 0; pointer-events: none; } .artist-card.is-flipped .back { opacity: 1; pointer-events: auto; }
+    .artist-photo { position: absolute; z-index: 1; top: 72px; right: clamp(20px, 4vw, 44px); width: clamp(88px, 11vw, 132px); aspect-ratio: 1; border-radius: 50%; background-size: cover; background-position: center; background-color: rgba(0,0,0,.1); border: 3px solid var(--card-ink); box-shadow: 0 12px 28px rgba(0,0,0,.3); display: none; pointer-events: none; }
+    .artist-photo.has-img { display: block; }
 
     .ticker {
       margin: clamp(36px, 6vh, 70px) calc(clamp(18px, 3vw, 44px) * -1) 0;
@@ -270,7 +276,8 @@
       color: #10130f;
       overflow: hidden;
     }
-    .ticker-track { width: max-content; display: flex; align-items: center; animation: ticker 24s linear infinite; }
+    .ticker-track { width: max-content; display: flex; align-items: stretch; animation: ticker 32s linear infinite; will-change: transform; }
+    .ticker-half { display: flex; align-items: center; flex-shrink: 0; }
     .ticker span { display: inline-flex; align-items: center; gap: 24px; padding: 11px 12px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .ticker span::after { content: "●"; font-size: 8px; }
     @keyframes ticker { to { transform: translateX(-50%); } }
@@ -315,7 +322,7 @@
       .broadcast { display: block; min-height: 0; } .tuner-console { min-height: 520px; padding: 24px 20px; border-width: 6px; }
       .station-readout { font-size: clamp(76px, 25vw, 110px); } .station-copy { margin-top: 17px; } .dial-wrap { margin-top: 24px; }
       .step-controls { grid-template-columns: 36px 76px minmax(60px, 1fr) 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
-      .signal span { display: none; }
+      .signal .sig-label { display: none; }
       .stage { padding: 28px 0; } .stack { min-height: 450px; } .artist-card { min-height: 450px; }
       .front, .back { padding: 21px; } .card-title strong { font-size: clamp(52px, 17vw, 74px); } .back h3 { font-size: 43px; }
       .mode-switch { margin-top: 18px; } .song { padding: 11px 0; } .ticker { margin-inline: -14px; } .footer-note { flex-direction: column; gap: 5px; }
@@ -351,14 +358,14 @@
       <h1 id="city-title"><span id="cityName">Here</span><span class="fm">FM</span></h1>
       <div class="masthead-copy">
         <p id="cityIntro">Turn the tuner dial and listen to what music is being played in your city.</p>
-        <span class="now-mark">On near you now</span>
+        <span class="now-mark">Live now near you</span>
       </div>
     </section>
 
     <section class="tuner-region" aria-label="Tune this week's shows">
       <div class="broadcast">
         <div class="tuner-console">
-          <div class="receiver-top"><span>Here receiver</span><span>Local band</span></div>
+          <div class="receiver-top"><span>Here.fm Receiver</span><span>Live band</span></div>
           <span class="console-label">Week band · signal live</span>
           <div class="frequency-window">
             <div class="station-readout"><span id="frequencyReadout">93.1</span><small>FM</small></div>
@@ -377,7 +384,7 @@
           <div class="step-controls">
             <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">←</button>
             <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
-            <span class="signal" aria-hidden="true"><i></i><i></i><i></i><span>Clear signal</span></span>
+            <span class="signal" aria-hidden="true"><span class="sig-bars"><i></i><i></i><i></i><i></i></span><span class="sig-label">Signal strength</span></span>
             <button class="step-button" id="tuneNext" type="button" aria-label="Next show">→</button>
           </div>
         </div>
@@ -397,7 +404,7 @@
     </section>
 
     <div class="ticker" aria-hidden="true">
-      <div class="ticker-track"><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span></div>
+      <div class="ticker-track"><div class="ticker-half"><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span></div><div class="ticker-half" aria-hidden="true"><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span></div></div>
     </div>
     <div class="footer-note"><span>HereFM concept · fictional demo lineup</span><span id="locationFoot">Location fallback: Vancouver</span></div>
   </main>
@@ -577,6 +584,7 @@
         btn.innerHTML =
           '<span class="card-inner">' +
             '<span class="card-face front">' +
+              '<span class="artist-photo" aria-hidden="true"></span>' +
               '<span class="card-meta"><span>' + esc(showMetaLeft(show)) + '</span><span>' + esc(show.demo ? show.demoGenre : 'Live music') + '</span></span>' +
               '<span class="card-title"><small>' + esc(venueLine) + '</small><strong>' + esc(artist) + '</strong><span>Open artist</span></span>' +
             '</span>' +
@@ -620,6 +628,26 @@
         card.querySelectorAll('.mode-button').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.mode === mode)); });
       }
 
+      function setPhoto(card, url) {
+        var el = card.querySelector('.artist-photo');
+        if (el && url) {
+          el.style.backgroundImage = 'url("' + String(url).replace(/"/g, '') + '")';
+          el.classList.add('has-img');
+        }
+        card._photoSet = true;
+      }
+
+      function ensurePhoto(card) {
+        if (card._photoSet || card._demo) return;
+        var sid = card.dataset.spotifyId;
+        if (!sid) { card._photoSet = true; return; }
+        card._photoSet = true; // one attempt per card; tracks fetch also feeds the photo
+        fetch(API_BASE + '/api/artist-top?spotifyId=' + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (d) { if (d && d.image) setPhoto(card, d.image); })
+          .catch(function () {});
+      }
+
       function ensureTracks(card) {
         if (card._demo) { renderSongs(card, card._mode); return; }
         if (card._tracks) { renderSongs(card, card._mode); return; }
@@ -643,6 +671,7 @@
             card._tracks = tracks;
             card.dataset.set = tracks.join('|');
             card.dataset.popular = tracks.join('|');
+            if (d.image) setPhoto(card, d.image);
             if (card.classList.contains('is-flipped')) renderSongs(card, card._mode);
           })
           .catch(function () {
@@ -681,6 +710,7 @@
         knob.setAttribute('aria-valuenow', String(index));
         knob.setAttribute('aria-valuetext', card.dataset.frequency + ' FM, ' + card.dataset.artist + ', ' + card.dataset.day);
         stopButtons.forEach(function (button) { button.setAttribute('aria-pressed', String(Number(button.dataset.index) === index)); });
+        ensurePhoto(card);
         if (announce) showToast(card.dataset.frequency + ' FM · ' + card.dataset.artist);
       }
 
@@ -732,7 +762,8 @@
         var spans = list.map(function (show) {
           return '<span>' + esc(show._freq) + ' · ' + esc(artistNames(show)) + '</span>';
         });
-        tickerTrack.innerHTML = spans.concat(spans).join('');
+        var half = spans.join('');
+        tickerTrack.innerHTML = '<div class="ticker-half">' + half + '</div><div class="ticker-half" aria-hidden="true">' + half + '</div>';
         footerBrand.textContent = live ? 'HereFM · live lineup' : 'HereFM concept · fictional demo lineup';
         tuneTo(0, false);
       }
@@ -749,11 +780,27 @@
         setCity(map[zone] || 'Vancouver', false);
       }
 
+      function pickCity(d) {
+        // BigDataCloud puts the metro region in `city` ("Metro Vancouver Regional
+        // District") — the real city is admin level 8, then locality.
+        var cands = [];
+        var admin = ((d.localityInfo || {}).administrative || []);
+        for (var i = 0; i < admin.length; i++) {
+          if (admin[i] && admin[i].adminLevel === 8 && admin[i].name) cands.push(admin[i].name);
+        }
+        cands.push(d.locality, d.city, d.principalSubdivision);
+        for (var j = 0; j < cands.length; j++) {
+          var c = cleanCity(cands[j] || '');
+          if (c && c.toLowerCase() !== 'here' && !/regional district/i.test(c)) return c;
+        }
+        return 'Here';
+      }
+
       function reverseGeocode(lat, lon) {
         var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + encodeURIComponent(lat) +
           '&longitude=' + encodeURIComponent(lon) + '&localityLanguage=en';
         return fetch(url).then(function (r) { return r.json(); }).then(function (d) {
-          return cleanCity(d.city || d.locality || d.principalSubdivision || 'Here');
+          return pickCity(d || {});
         }).catch(function () { return 'Here'; });
       }
 
@@ -825,7 +872,25 @@
         if (event.key === 'Home') { event.preventDefault(); tuneTo(0, true); }
         if (event.key === 'End') { event.preventDefault(); tuneTo(cards.length - 1, true); }
       });
+      // iOS-style signal meter: bars flicker like a real receiver hunting for signal.
+      var sigBars = Array.prototype.slice.call(document.querySelectorAll('.sig-bars i'));
+      var reduceMotion = false;
+      try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      function flickSignal() {
+        var level = 2 + Math.floor(Math.random() * 3); // usually 2-4 bars
+        if (Math.random() < 0.12) level = 1; // occasional dip, like a real signal
+        sigBars.forEach(function (bar, i) { bar.classList.toggle('on', i < level); });
+      }
+      if (sigBars.length) {
+        flickSignal();
+        if (!reduceMotion) setInterval(flickSignal, 1700);
+      }
       document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeCards(); });
+      document.addEventListener('click', function (event) {
+        if (!document.querySelector('.artist-card.is-flipped')) return;
+        if (event.target.closest('.artist-card')) return; // taps on the card itself stay
+        closeCards(); // tap anywhere else dismisses the open card
+      });
       locateButton.addEventListener('click', function () { requestLocation(true); });
 
       // ---- boot ----------------------------------------------------------------

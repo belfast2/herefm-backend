@@ -253,11 +253,11 @@
     .card-meta, .card-title { position: relative; z-index: 1; } .card-meta { display: flex; justify-content: space-between; gap: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .card-title::before, .card-meta::before { content: ""; position: absolute; z-index: -1; inset: -18px -26px; background: radial-gradient(ellipse at 34% 66%, var(--card-bg) 24%, transparent 74%); pointer-events: none; }
     .card-title small { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-    .card-title strong { display: block; max-width: 94%; font-family: "Anton", sans-serif; font-size: clamp(60px, 7.4vw, 106px); font-weight: 400; line-height: .86; letter-spacing: -.025em; text-transform: uppercase; }
+    .card-title strong { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; max-width: 94%; font-family: "Anton", sans-serif; font-size: clamp(60px, 7.4vw, 106px); font-weight: 400; line-height: .86; letter-spacing: -.025em; text-transform: uppercase; }
     .card-title span { display: flex; align-items: center; gap: 9px; margin-top: 18px; font-size: 13px; font-weight: 700; } .card-title span::after { content: "↗"; font-size: 18px; }
     .back { transform: rotateY(180deg) translateZ(1px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; padding: clamp(24px, 4vw, 46px); background: var(--ink); color: var(--paper-soft); cursor: default; }
     .back-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; } .back-kicker { color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-    .back h3 { margin: 7px 0 0; font-family: "Anton", sans-serif; font-size: clamp(46px, 5.8vw, 78px); font-weight: 400; line-height: .92; text-transform: uppercase; }
+    .back h3 { margin: 7px 0 0; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-family: "Anton", sans-serif; font-size: clamp(46px, 5.8vw, 78px); font-weight: 400; line-height: .92; text-transform: uppercase; }
     .close-card { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
     .mode-switch { display: flex; gap: 7px; margin: 24px 0 16px; } .mode-button { border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 8px 12px; background: transparent; color: #bec4b8; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
     .mode-button[aria-pressed="true"] { background: var(--acid); border-color: var(--acid); color: #10130f; }
@@ -265,7 +265,7 @@
     .song .num { color: #858e7f; font-size: 11px; } .song strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; } .song .tag { color: #9fa898; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
     .back-note { margin: auto 0 0; padding-top: 18px; color: #9fa898; font-size: 10px; letter-spacing: .04em; }
     .artist-card.is-flipped .card-inner { transform: rotateY(180deg); } .artist-card.is-flipped .front { opacity: 0; pointer-events: none; } .artist-card.is-flipped .back { opacity: 1; pointer-events: auto; }
-    .artist-photo { position: absolute; z-index: 1; top: 72px; right: clamp(20px, 4vw, 44px); width: clamp(88px, 11vw, 132px); aspect-ratio: 1; border-radius: 50%; background-size: cover; background-position: center; background-color: rgba(0,0,0,.1); border: 3px solid var(--card-ink); box-shadow: 0 12px 28px rgba(0,0,0,.3); display: none; pointer-events: none; }
+    .artist-photo { position: absolute; z-index: 1; top: 64px; right: clamp(18px, 3vw, 40px); width: clamp(150px, 19vw, 240px); aspect-ratio: 1; border-radius: 50%; background-size: cover; background-position: center; background-color: rgba(0,0,0,.1); border: 4px solid var(--card-ink); box-shadow: 0 14px 34px rgba(0,0,0,.32); display: none; pointer-events: none; }
     .artist-photo.has-img { display: block; }
 
     .ticker {
@@ -277,10 +277,11 @@
       overflow: hidden;
     }
     .ticker-track { width: max-content; display: flex; align-items: stretch; animation: ticker 32s linear infinite; will-change: transform; }
-    .ticker-half { display: flex; align-items: center; flex-shrink: 0; }
+    .ticker-half { display: flex; align-items: center; flex-shrink: 0; white-space: nowrap; }
+    .ticker-half > span { flex-shrink: 0; }
     .ticker span { display: inline-flex; align-items: center; gap: 24px; padding: 11px 12px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .ticker span::after { content: "●"; font-size: 8px; }
-    @keyframes ticker { to { transform: translateX(-50%); } }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .footer-note { display: flex; justify-content: space-between; gap: 20px; padding-top: 18px; color: var(--muted); font-size: 11px; }
 
     .toast {
@@ -443,6 +444,7 @@
       var knobMoved = false;
       var liveMode = false;
       var demoActive = true;
+      var lastTickerSig = '';
 
       var PALETTES = [
         { bg: 'var(--pink)', ink: '#15130f', shape: '#ff5638' },
@@ -532,6 +534,42 @@
         if (!names.length) return show.name || 'Unknown artist';
         return names.slice(0, 3).join(', ');
       }
+      // Card + ticker display rule: headliners only. More than two acts becomes
+      // "A + B + N more"; a monster single name gets trimmed at a word boundary.
+      function displayArtists(show) {
+        var names = (show.artists || []).map(function (a) { return a.name; }).filter(Boolean);
+        if (!names.length) {
+          var n = show.name || 'Unknown artist';
+          if (n.length > 44) {
+            var cut = n.slice(0, 44);
+            var sp = cut.lastIndexOf(' ');
+            n = (sp > 20 ? cut.slice(0, sp) : cut) + '…';
+          }
+          return n;
+        }
+        if (names.length <= 2) return names.join(' + ');
+        return names.slice(0, 2).join(' + ') + ' + ' + (names.length - 2) + ' more';
+      }
+      // Shrink a title until it fits its box (backstop: CSS line-clamp + ellipsis).
+      function fitTitle(el, minPx) {
+        if (!el) return;
+        try {
+          el.style.fontSize = '';
+          var size = parseFloat(window.getComputedStyle(el).fontSize) || 16;
+          var guard = 0;
+          while (guard < 12 && el.scrollHeight > el.clientHeight + 2 && size > minPx) {
+            size *= 0.88;
+            el.style.fontSize = size.toFixed(1) + 'px';
+            guard++;
+          }
+        } catch (e) {}
+      }
+      function fitCards() {
+        cards.forEach(function (card) {
+          fitTitle(card.querySelector('.card-title strong'), 30);
+          fitTitle(card.querySelector('.back h3'), 24);
+        });
+      }
       function firstSpotifyId(show) {
         var arts = show.artists || [];
         for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyId) return arts[i].spotifyId; }
@@ -555,6 +593,7 @@
       function buildCard(show, index, total) {
         var pal = PALETTES[index % PALETTES.length];
         var artist = artistNames(show);
+        var displayArtist = displayArtists(show);
         var step = total > 1 ? Math.min(2.1, 19.8 / (total - 1)) : 0;
         var freq = (88.1 + index * step).toFixed(1);
         var venue = show.venue || {};
@@ -586,10 +625,10 @@
             '<span class="card-face front">' +
               '<span class="artist-photo" aria-hidden="true"></span>' +
               '<span class="card-meta"><span>' + esc(showMetaLeft(show)) + '</span><span>' + esc(show.demo ? show.demoGenre : 'Live music') + '</span></span>' +
-              '<span class="card-title"><small>' + esc(venueLine) + '</small><strong>' + esc(artist) + '</strong><span>Open artist</span></span>' +
+              '<span class="card-title"><small>' + esc(venueLine) + '</small><strong>' + esc(displayArtist) + '</strong><span>Open artist</span></span>' +
             '</span>' +
             '<span class="card-face back">' +
-              '<span class="back-top"><span><span class="back-kicker">' + esc(showKicker(show)) + '</span><h3>' + esc(artist) + '</h3></span><span class="close-card" aria-label="Close artist card">×</span></span>' +
+              '<span class="back-top"><span><span class="back-kicker">' + esc(showKicker(show)) + '</span><h3>' + esc(displayArtist) + '</h3></span><span class="close-card" aria-label="Close artist card">×</span></span>' +
               '<span class="mode-switch"><span class="mode-button" data-mode="set" aria-pressed="true">Likely set</span><span class="mode-button" data-mode="popular" aria-pressed="false">Top tracks</span></span>' +
               '<span class="song-list"></span>' +
               cardLinks(show) +
@@ -760,12 +799,19 @@
         dial.max = String(Math.max(0, list.length - 1));
         knob.setAttribute('aria-valuemax', String(Math.max(0, list.length - 1)));
         var spans = list.map(function (show) {
-          return '<span>' + esc(show._freq) + ' · ' + esc(artistNames(show)) + '</span>';
+          return '<span>' + esc(show._freq) + ' · ' + esc(displayArtists(show)) + '</span>';
         });
-        var half = spans.join('');
-        tickerTrack.innerHTML = '<div class="ticker-half">' + half + '</div><div class="ticker-half" aria-hidden="true">' + half + '</div>';
+        // Only rebuild the ticker when the lineup actually changes — swapping the DOM
+        // mid-scroll makes the loop visibly jump.
+        var tickerSig = list.map(function (show) { return show._freq + '|' + displayArtists(show); }).join('~');
+        if (tickerSig !== lastTickerSig) {
+          lastTickerSig = tickerSig;
+          var half = spans.join('');
+          tickerTrack.innerHTML = '<div class="ticker-half">' + half + '</div><div class="ticker-half" aria-hidden="true">' + half + '</div>';
+        }
         footerBrand.textContent = live ? 'HereFM · live lineup' : 'HereFM concept · fictional demo lineup';
         tuneTo(0, false);
+        fitCards();
       }
 
       function timezoneFallback() {
@@ -890,6 +936,11 @@
         if (!document.querySelector('.artist-card.is-flipped')) return;
         if (event.target.closest('.artist-card')) return; // taps on the card itself stay
         closeCards(); // tap anywhere else dismisses the open card
+      });
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(fitCards, 250);
       });
       locateButton.addEventListener('click', function () { requestLocation(true); });
 

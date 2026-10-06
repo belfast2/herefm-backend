@@ -255,7 +255,7 @@
     .card-title small { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .card-title strong { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; max-width: 94%; font-family: "Anton", sans-serif; font-size: clamp(60px, 7.4vw, 106px); font-weight: 400; line-height: .86; letter-spacing: -.025em; text-transform: uppercase; }
     .card-title span { display: flex; align-items: center; gap: 9px; margin-top: 18px; font-size: 13px; font-weight: 700; } .card-title span::after { content: "↗"; font-size: 18px; }
-    .back { transform: rotateY(180deg) translateZ(1px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; padding: clamp(24px, 4vw, 46px); background: var(--ink); color: var(--paper-soft); cursor: default; }
+    .back { transform: rotateY(180deg) translateZ(1px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; padding: clamp(24px, 4vw, 46px); background: #12140f; color: #f6f7f2; cursor: default; }
     .back-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; } .back-kicker { color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .back h3 { margin: 7px 0 0; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-family: "Anton", sans-serif; font-size: clamp(46px, 5.8vw, 78px); font-weight: 400; line-height: .92; text-transform: uppercase; }
     .close-card { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
@@ -271,6 +271,7 @@
     .song.is-playing { background: rgba(201,255,63,.1); }
     .song.is-playing .tag { font-weight: 800; }
     .song-list { min-height: 0; overflow: auto; border-top: 1px solid rgba(255,255,255,.22); } .song { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.16); }
+    .song > strong:only-child { grid-column: 1 / -1; white-space: normal; }
     .song .num { color: #858e7f; font-size: 11px; } .song strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; } .song .tag { color: #9fa898; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
     .back-note { margin: auto 0 0; padding-top: 18px; color: #9fa898; font-size: 10px; letter-spacing: .04em; }
     .artist-card.is-flipped .card-inner { transform: rotateY(180deg); } .artist-card.is-flipped .front { opacity: 0; pointer-events: none; } .artist-card.is-flipped .back { opacity: 1; pointer-events: auto; }

@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#e9ede5" />
+  <link rel="icon" href="data:," />
+  <title>HereFM — hear who is here</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #e9ede5;
+      --paper-soft: #f6f7f2;
+      --ink: #12140f;
+      --muted: #5d655a;
+      --line: rgba(18, 20, 15, .22);
+      --orange: #ff5938;
+      --acid: #c9ff3f;
+      --blue: #1748ff;
+      --pink: #ff8cb8;
+      --shadow: 0 34px 90px rgba(25, 31, 20, .18);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #10130f;
+        --paper-soft: #171b15;
+        --ink: #f1f4e9;
+        --muted: #a8afa0;
+        --line: rgba(241, 244, 233, .22);
+        --orange: #ff6544;
+        --acid: #c9ff3f;
+        --blue: #5274ff;
+        --pink: #ff9bc3;
+        --shadow: 0 38px 100px rgba(0, 0, 0, .42);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 0;
+      overflow-x: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Manrope", sans-serif;
+      line-height: 1.4;
+    }
+    button { font: inherit; color: inherit; }
+    button:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+    .page {
+      min-height: 100svh;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: max(18px, env(safe-area-inset-top)) clamp(18px, 3vw, 44px) max(22px, env(safe-area-inset-bottom));
+    }
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 72px 72px;
+      opacity: .2;
+      mask-image: linear-gradient(to bottom, #000, transparent 82%);
+    }
+    .orbital {
+      width: min(58vw, 720px);
+      aspect-ratio: 1;
+      position: absolute;
+      z-index: -2;
+      left: -18vw;
+      bottom: -38vw;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      animation: turn 22s linear infinite;
+    }
+    .orbital::before, .orbital::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+    .orbital::before { inset: 14%; border: 1px dashed var(--orange); }
+    .orbital::after { width: 16px; height: 16px; left: 7%; top: 26%; background: var(--acid); box-shadow: 0 0 0 9px color-mix(in srgb, var(--acid) 18%, transparent); }
+    @keyframes turn { to { transform: rotate(360deg); } }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 44px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .locate {
+      display: inline-flex;
+      align-items: stretch;
+      border: 1px solid rgba(18, 20, 15, .48);
+      padding: 3px;
+      background: #161713;
+      color: #f8f8f1;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.2) inset, 0 4px 16px rgba(18,20,15,.16);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .live-label, .live-city { display: inline-flex; align-items: center; min-height: 26px; }
+    .live-label {
+      gap: 7px;
+      padding: 4px 9px;
+      background: #ff3f29;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(255,255,255,.75);
+      box-shadow: 0 0 14px rgba(255,63,41,.58), inset 0 0 10px rgba(255,255,255,.22);
+    }
+    .live-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .live-city { padding: 4px 9px 4px 10px; color: #f1f2eb; }
+    .locate.is-searching .live-label::before { animation: studio-pulse 1.15s ease-in-out infinite; }
+    @keyframes studio-pulse { 50% { opacity: .3; box-shadow: 0 0 2px currentColor; } }
+    .concept-note { color: var(--muted); text-align: right; }
+
+    .masthead {
+      position: relative;
+      z-index: 2;
+      padding-top: clamp(26px, 5vh, 62px);
+    }
+    .masthead h1 {
+      margin: 0;
+      max-width: 100%;
+      font-family: "Anton", sans-serif;
+      font-size: min(15.3vw, calc((100vw - 88px) / var(--title-chars, 11) * 1.38));
+      font-weight: 400;
+      line-height: .8;
+      letter-spacing: -.045em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .masthead h1 .fm { color: var(--orange); }
+    .masthead-copy {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-top: clamp(22px, 4vh, 46px);
+    }
+    .masthead-copy p {
+      max-width: 480px;
+      margin: 0;
+      font-size: clamp(17px, 1.55vw, 23px);
+      line-height: 1.35;
+      letter-spacing: -.025em;
+    }
+    .now-mark {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .now-mark::before { content: ""; width: 44px; height: 2px; background: var(--ink); }
+
+    .tuner-region { width: min(1320px, 100%); margin: clamp(24px, 3.6vh, 46px) auto 0; }
+    .broadcast { min-height: 610px; display: grid; grid-template-columns: minmax(340px, .72fr) minmax(460px, 1fr); align-items: stretch; gap: clamp(26px, 4vw, 58px); }
+    .tuner-console {
+      --radio-ink: #f5f4eb;
+      --radio-muted: #a9afa4;
+      min-width: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-self: stretch;
+      padding: clamp(24px, 3vw, 38px);
+      border: 8px solid #b9bdb4;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #242822, #10120f 62%);
+      color: var(--radio-ink);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 0 34px rgba(0,0,0,.42), 0 24px 60px rgba(18,20,15,.24);
+    }
+    .tuner-console::before, .tuner-console::after { content: ""; position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #555a52; box-shadow: inset 1px 1px 1px rgba(255,255,255,.42); }
+    .tuner-console::before { left: 10px; top: 10px; } .tuner-console::after { right: 10px; top: 10px; }
+    .receiver-top { display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.16); color: var(--radio-muted); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .console-label { display: flex; align-items: center; gap: 10px; margin-top: 16px; color: var(--radio-muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .console-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: studio-pulse 1.7s ease-in-out infinite; }
+    .frequency-window { margin-top: 16px; padding: clamp(19px, 2.5vw, 30px); border: 1px solid rgba(201,255,63,.35); border-radius: 7px; background: #171d12; box-shadow: inset 0 0 24px rgba(0,0,0,.72), 0 0 18px rgba(201,255,63,.08); }
+    .station-readout { display: flex; align-items: baseline; gap: 10px; font-family: "Anton", sans-serif; font-size: clamp(76px, 8.5vw, 126px); line-height: .8; letter-spacing: -.035em; font-variant-numeric: tabular-nums; color: var(--acid); text-shadow: 0 0 18px rgba(201,255,63,.28); }
+    .station-readout small { color: var(--acid); font: 700 13px/1 "Manrope", sans-serif; letter-spacing: .08em; }
+    .station-copy { margin-top: 20px; color: var(--radio-ink); }
+    .station-day { display: block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .station-detail { display: block; margin-top: 6px; color: var(--radio-muted); font-size: 12px; }
+    .dial-wrap { margin-top: clamp(24px, 4vh, 42px); padding: 14px 13px 11px; border: 1px solid rgba(255,255,255,.14); border-radius: 6px; background: #0b0d0a; box-shadow: inset 0 3px 11px rgba(0,0,0,.75); }
+    .scale-rule { display: flex; justify-content: space-between; color: #7c8377; font-size: 8px; font-weight: 700; letter-spacing: .04em; }
+    .dial { width: 100%; height: 34px; margin: 0; appearance: none; -webkit-appearance: none; background: transparent; cursor: ew-resize; }
+    .dial::-webkit-slider-runnable-track { height: 2px; background: repeating-linear-gradient(90deg, #697064 0 1px, transparent 1px 8px), #323730; }
+    .dial::-moz-range-track { height: 2px; background: #454b42; border: 0; }
+    .dial::-webkit-slider-thumb { width: 4px; height: 28px; margin-top: -13px; -webkit-appearance: none; border: 0; border-radius: 0; background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+    .dial::-moz-range-thumb { width: 4px; height: 28px; border: 0; border-radius: 0; background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+    .band-stops { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 1px; }
+    .band-stop { position: relative; border: 0; padding: 9px 0 0; background: transparent; color: #777f72; cursor: pointer; text-align: center; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .band-stop:first-child { text-align: left; } .band-stop:last-child { text-align: right; }
+    .band-stop::before { content: ""; width: 1px; height: 6px; position: absolute; left: 50%; top: -1px; background: #51574e; }
+    .band-stop:first-child::before { left: 1px; } .band-stop:last-child::before { left: auto; right: 1px; }
+    .band-stop span { display: block; margin-top: 3px; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
+    .band-stop[aria-pressed="true"] { color: var(--acid); }
+    .step-controls { display: grid; grid-template-columns: 42px 92px minmax(76px, 1fr) 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
+    .step-button { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 17px; transition: color .2s ease, border-color .2s ease; }
+    .step-button:hover { border-color: var(--acid); color: var(--acid); }
+    .tune-knob { width: 88px; height: 88px; position: relative; border: 2px solid #080907; border-radius: 50%; background: repeating-radial-gradient(circle at 36% 34%, #444a40 0 2px, #23271f 3px 6px); color: var(--acid); box-shadow: 0 8px 18px rgba(0,0,0,.56), inset 2px 2px 3px rgba(255,255,255,.16), 0 0 0 4px #151812, 0 0 0 5px #42473f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
+    .tune-knob:active { cursor: grabbing; }
+    .tune-knob span { width: 3px; height: 26px; position: absolute; left: 50%; top: 8px; border-radius: 2px; background: currentColor; box-shadow: 0 0 7px currentColor; transform: translateX(-50%); }
+    .signal { height: 24px; display: flex; align-items: end; justify-self: end; gap: 4px; color: var(--radio-muted); font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .signal i { width: 3px; display: block; background: var(--orange); animation: signal 1.15s ease-in-out infinite alternate; }
+    .signal i:nth-child(1) { height: 7px; } .signal i:nth-child(2) { height: 13px; animation-delay: -.35s; } .signal i:nth-child(3) { height: 19px; animation-delay: -.7s; }
+    .signal span { margin-left: 5px; } @keyframes signal { to { transform: scaleY(.42); opacity: .45; } }
+    .stage { min-width: 0; position: relative; display: flex; flex-direction: column; padding: clamp(24px, 4vw, 48px) 0 clamp(24px, 4vw, 48px) clamp(24px, 5vw, 74px); }
+    .stage-status { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 18px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .stage-status strong { color: var(--ink); font-weight: 700; }
+    .stack { min-height: 520px; flex: 1; min-width: 0; position: relative; perspective: 1600px; }
+    .artist-card { width: 100%; height: 100%; min-height: 520px; position: absolute; inset: 0; padding: 0; border: 0; border-radius: 0; background: transparent; transform: translateX(44px) scale(.965); transform-style: preserve-3d; opacity: 0; pointer-events: none; cursor: pointer; transition: transform .62s cubic-bezier(.18,.8,.22,1), opacity .38s ease; }
+    .artist-card.is-selected { z-index: 2; opacity: 1; pointer-events: auto; transform: translateX(0) scale(1); }
+    .artist-card.is-leaving { transform: translateX(-44px) scale(.965); } .artist-card.is-selected:hover { transform: translateY(-5px); }
+    .card-inner { display: block; width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform .72s cubic-bezier(.2,.75,.18,1); box-shadow: var(--shadow); }
+    .card-face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform-style: preserve-3d; text-align: left; transition: opacity 0s linear .36s; }
+    .front { display: flex; transform: rotateY(0deg) translateZ(1px); opacity: 1; flex-direction: column; justify-content: space-between; padding: clamp(24px, 4vw, 48px); background: var(--card-bg); color: var(--card-ink); }
+    .front::before, .front::after { content: ""; position: absolute; pointer-events: none; }
+    .front::before { width: 72%; aspect-ratio: 1; border: clamp(30px, 4vw, 64px) solid currentColor; border-radius: 50%; right: -22%; top: 5%; opacity: .92; }
+    .front::after { width: 52%; height: 130%; left: 22%; top: -16%; background: var(--shape); transform: rotate(18deg); mix-blend-mode: multiply; opacity: .86; }
+    .artist-card:nth-child(2) .front::before { border-radius: 0; transform: rotate(18deg); top: 19%; right: -31%; } .artist-card:nth-child(2) .front::after { transform: rotate(-26deg); left: -13%; }
+    .artist-card:nth-child(3) .front::before { width: 62%; border-width: 3px; box-shadow: 0 0 0 24px currentColor, 0 0 0 52px var(--shape); right: -8%; top: 19%; } .artist-card:nth-child(3) .front::after { width: 18%; height: 125%; left: 27%; transform: rotate(29deg); }
+    .artist-card:nth-child(4) .front::before { width: 105%; right: -42%; top: -22%; border-width: 42px; } .artist-card:nth-child(4) .front::after { width: 70%; height: 42%; left: -18%; top: 58%; transform: rotate(-8deg); }
+    .card-meta, .card-title { position: relative; z-index: 1; } .card-meta { display: flex; justify-content: space-between; gap: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .card-title small { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .card-title strong { display: block; max-width: 94%; font-family: "Anton", sans-serif; font-size: clamp(60px, 7.4vw, 106px); font-weight: 400; line-height: .86; letter-spacing: -.025em; text-transform: uppercase; }
+    .card-title span { display: flex; align-items: center; gap: 9px; margin-top: 18px; font-size: 13px; font-weight: 700; } .card-title span::after { content: "↗"; font-size: 18px; }
+    .back { transform: rotateY(180deg) translateZ(1px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; padding: clamp(24px, 4vw, 46px); background: var(--ink); color: var(--paper-soft); cursor: default; }
+    .back-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; } .back-kicker { color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .back h3 { margin: 7px 0 0; font-family: "Anton", sans-serif; font-size: clamp(46px, 5.8vw, 78px); font-weight: 400; line-height: .92; text-transform: uppercase; }
+    .close-card { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
+    .mode-switch { display: flex; gap: 7px; margin: 24px 0 16px; } .mode-button { border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 8px 12px; background: transparent; color: #bec4b8; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .mode-button[aria-pressed="true"] { background: var(--acid); border-color: var(--acid); color: #10130f; }
+    .song-list { min-height: 0; overflow: auto; border-top: 1px solid rgba(255,255,255,.22); } .song { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.16); }
+    .song .num { color: #858e7f; font-size: 11px; } .song strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; } .song .tag { color: #9fa898; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+    .back-note { margin: auto 0 0; padding-top: 18px; color: #9fa898; font-size: 10px; letter-spacing: .04em; }
+    .artist-card.is-flipped .card-inner { transform: rotateY(180deg); } .artist-card.is-flipped .front { opacity: 0; pointer-events: none; } .artist-card.is-flipped .back { opacity: 1; pointer-events: auto; }
+
+    .ticker {
+      margin: clamp(36px, 6vh, 70px) calc(clamp(18px, 3vw, 44px) * -1) 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--acid);
+      color: #10130f;
+      overflow: hidden;
+    }
+    .ticker-track { width: max-content; display: flex; align-items: center; animation: ticker 24s linear infinite; }
+    .ticker span { display: inline-flex; align-items: center; gap: 24px; padding: 11px 12px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .ticker span::after { content: "●"; font-size: 8px; }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+    .footer-note { display: flex; justify-content: space-between; gap: 20px; padding-top: 18px; color: var(--muted); font-size: 11px; }
+
+    .toast {
+      position: fixed;
+      z-index: 30;
+      left: 50%;
+      bottom: max(22px, env(safe-area-inset-bottom));
+      max-width: calc(100vw - 32px);
+      padding: 11px 15px;
+      background: var(--ink);
+      color: var(--paper);
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      transform: translate(-50%, 18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 900px) {
+      .masthead h1 { font-size: min(18vw, calc((100vw - 64px) / var(--title-chars, 11) * 1.38)); }
+      .broadcast { grid-template-columns: minmax(300px, .72fr) minmax(390px, 1fr); gap: 28px; }
+      .tuner-console { padding: 24px; } .stage { padding-left: 0; }
+      .station-readout { font-size: clamp(72px, 11vw, 100px); } .card-title strong { font-size: clamp(54px, 8vw, 78px); }
+      .step-controls { grid-template-columns: 38px 78px minmax(66px, 1fr) 38px; gap: 10px; }
+      .step-button { width: 38px; height: 38px; } .tune-knob { width: 74px; height: 74px; }
+    }
+    @media (max-width: 700px) {
+      .page { padding-inline: 14px; } .page::before { background-size: 48px 48px; } .topline { font-size: 10px; }
+      .locate { padding: 2px; letter-spacing: .06em; } .live-label, .live-city { min-height: 24px; } .live-label { gap: 5px; padding-inline: 7px; }
+      .live-city { max-width: 112px; padding-inline: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .concept-note { max-width: 120px; }
+      .masthead { padding-top: 26px; } .masthead h1 { font-size: min(21.8vw, calc((100vw - 28px) / var(--title-chars, 11) * 1.38)); white-space: nowrap; line-height: .84; }
+      .masthead-copy { align-items: flex-start; margin-top: 18px; } .masthead-copy p { font-size: 16px; max-width: 320px; } .now-mark { display: none; }
+      .tuner-region { margin-top: 28px; }
+      .broadcast { display: block; min-height: 0; } .tuner-console { min-height: 520px; padding: 24px 20px; border-width: 6px; }
+      .station-readout { font-size: clamp(76px, 25vw, 110px); } .station-copy { margin-top: 17px; } .dial-wrap { margin-top: 24px; }
+      .step-controls { grid-template-columns: 36px 76px minmax(60px, 1fr) 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
+      .signal span { display: none; }
+      .stage { padding: 28px 0; } .stack { min-height: 450px; } .artist-card { min-height: 450px; }
+      .front, .back { padding: 21px; } .card-title strong { font-size: clamp(52px, 17vw, 74px); } .back h3 { font-size: 43px; }
+      .mode-switch { margin-top: 18px; } .song { padding: 11px 0; } .ticker { margin-inline: -14px; } .footer-note { flex-direction: column; gap: 5px; }
+      .orbital { width: 110vw; left: -54vw; bottom: -44vw; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+    }
+  
+    .card-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .card-links a {
+      font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      padding: 7px 12px; border: 1px solid currentColor; border-radius: 999px;
+      color: inherit; text-decoration: none; opacity: .9;
+    }
+    .card-links a:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+  <main class="page">
+    <div class="orbital" aria-hidden="true"></div>
+
+    <header class="topline" aria-label="Location status">
+      <button class="locate is-searching" id="locate" type="button" aria-label="Retune location">
+        <span class="live-label">On air</span>
+        <span class="live-city" id="locationStatus">Locating</span>
+      </button>
+      <span class="concept-note">This week · concept lineup</span>
+    </header>
+
+    <section class="masthead" aria-labelledby="city-title">
+      <h1 id="city-title"><span id="cityName">Here</span><span class="fm">FM</span></h1>
+      <div class="masthead-copy">
+        <p id="cityIntro">Turn the tuner dial and listen to what music is being played in your city.</p>
+        <span class="now-mark">On near you now</span>
+      </div>
+    </section>
+
+    <section class="tuner-region" aria-label="Tune this week's shows">
+      <div class="broadcast">
+        <div class="tuner-console">
+          <div class="receiver-top"><span>Here receiver</span><span>Local band</span></div>
+          <span class="console-label">Week band · signal live</span>
+          <div class="frequency-window">
+            <div class="station-readout"><span id="frequencyReadout">93.1</span><small>FM</small></div>
+            <div class="station-copy"><strong class="station-day" id="stationDay">Tonight</strong><span class="station-detail" id="stationDetail">Granville Room · Downtown</span></div>
+          </div>
+          <div class="dial-wrap">
+            <div class="scale-rule" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span></div>
+            <input class="dial" id="tunerDial" type="range" min="0" max="3" step="1" value="0" aria-label="Tune through this week's shows">
+            <div class="band-stops" aria-label="Show frequencies">
+              
+              
+              
+              
+            </div>
+          </div>
+          <div class="step-controls">
+            <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">←</button>
+            <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
+            <span class="signal" aria-hidden="true"><i></i><i></i><i></i><span>Clear signal</span></span>
+            <button class="step-button" id="tuneNext" type="button" aria-label="Next show">→</button>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="stage-status"><strong>Now receiving</strong><span id="stationCount">01 / 04</span></div>
+      <div class="stack" id="artistStack" aria-label="Artist currently tuned in">
+        
+
+        
+
+        
+
+        
+      </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track"><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span><span>Drag the dial</span><span>Four signals this week</span><span>Tap to flip</span><span>Know the set</span></div>
+    </div>
+    <div class="footer-note"><span>HereFM concept · fictional demo lineup</span><span id="locationFoot">Location fallback: Vancouver</span></div>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+(function () {
+      // ---- HereFM live wiring -------------------------------------------------
+      // Served from the same Vercel project as the backend, so the API is same-origin.
+      var API_BASE = '';
+      var MAX_STATIONS = 16;
+
+      var cityEl = document.getElementById('cityName');
+      var cityIntro = document.getElementById('cityIntro');
+      var statusEl = document.getElementById('locationStatus');
+      var footEl = document.getElementById('locationFoot');
+      var locateButton = document.getElementById('locate');
+      var stack = document.getElementById('artistStack');
+      var stopsWrap = document.querySelector('.band-stops');
+      var dial = document.getElementById('tunerDial');
+      var frequencyEl = document.getElementById('frequencyReadout');
+      var dayEl = document.getElementById('stationDay');
+      var detailEl = document.getElementById('stationDetail');
+      var countEl = document.getElementById('stationCount');
+      var knob = document.getElementById('tuneKnob');
+      var tickerTrack = document.querySelector('.ticker-track');
+      var footerBrand = document.querySelector('.footer-note span');
+      var toast = document.getElementById('toast');
+      var toastTimer;
+
+      var cards = [];
+      var stopButtons = [];
+      var currentStation = 0;
+      var knobDragStart = null;
+      var knobStartStation = 0;
+      var knobMoved = false;
+      var liveMode = false;
+      var demoActive = true;
+
+      var PALETTES = [
+        { bg: 'var(--pink)', ink: '#15130f', shape: '#ff5638' },
+        { bg: 'var(--blue)', ink: '#f6f7f2', shape: '#c9ff3f' },
+        { bg: 'var(--acid)', ink: '#10130f', shape: '#ff5938' },
+        { bg: 'var(--orange)', ink: '#12140f', shape: '#1748ff' }
+      ];
+
+      // Fictional fallback lineup — shown only when live data is unreachable.
+      var DEMO_SHOWS = [
+        { demo: true, name: 'Marrow Lake', artists: [{ name: 'Marrow Lake' }],
+          venue: { name: 'Foundry Stage', city: 'Railtown' }, dateTime: null,
+          demoDay: 'Saturday', demoMeta: 'Sat · Oct 10', demoGenre: 'Dream pop',
+          demoKicker: 'Saturday · 8:00 PM',
+          demoTracks: { set: ['Low Tide', 'Silver Thread', 'Wrong Weather', 'Glass House', 'Stay Until Morning'],
+                        popular: ['Low Tide', 'Blue Hours', 'Soft Static', 'Silver Thread', 'Distant Light'] } },
+        { demo: true, name: 'Northline', artists: [{ name: 'Northline' }],
+          venue: { name: 'The Junction', city: 'Gastown' }, dateTime: null,
+          demoDay: 'Friday', demoMeta: 'Fri · Oct 9', demoGenre: 'Electronic',
+          demoKicker: 'Friday · 9:00 PM',
+          demoTracks: { set: ['Night Bus', 'Strangers Again', 'Signal Loss', 'Northbound', 'Last Train'],
+                        popular: ['Night Bus', 'Terminal Bloom', 'After Twelve', 'Northbound', 'Halogen'] } },
+        { demo: true, name: 'Hana Vale', artists: [{ name: 'Hana Vale' }],
+          venue: { name: 'Eastside Hall', city: 'Mount Pleasant' }, dateTime: null,
+          demoDay: 'Wednesday', demoMeta: 'Wed · Oct 7', demoGenre: 'Alt-pop',
+          demoKicker: 'Wednesday · 7:30 PM',
+          demoTracks: { set: ['Afterimage', 'Little Disaster', 'Neon Weather', 'Call It Even', 'Close to the Sun'],
+                        popular: ['Afterimage', 'Call It Even', 'Half Awake', 'New Colour', 'Paper Crown'] } },
+        { demo: true, name: 'Static Garden', artists: [{ name: 'Static Garden' }],
+          venue: { name: 'Granville Room', city: 'Downtown' }, dateTime: null,
+          demoDay: 'Tonight', demoMeta: 'Tonight · 8:00', demoGenre: 'Indie rock',
+          demoKicker: 'Tonight · 8:00 PM',
+          demoTracks: { set: ['Soft Exit', 'Secondhand Sun', 'Quiet Hours', 'Stray Voltage', 'No Reply'],
+                        popular: ['Soft Exit', 'Quiet Hours', 'Open Window', 'Secondhand Sun', 'Fever Dream'] } }
+      ];
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1800);
+      }
+      function cleanCity(name) { return name.replace(/[^a-zA-ZÀ-ž .'-]/g, '').trim() || 'Here'; }
+      function setCity(name, precise) {
+        name = cleanCity(name);
+        cityEl.textContent = name;
+        cityIntro.textContent = 'Turn the tuner dial and listen to what music is being played in ' + name + '.';
+        statusEl.textContent = name;
+        footEl.textContent = precise ? 'Live · located from this device' : 'Location fallback: ' + name;
+        document.getElementById('city-title').style.setProperty('--title-chars', String(name.length + 2));
+        locateButton.classList.remove('is-searching');
+        locateButton.setAttribute('aria-label', 'Retune location. Current city: ' + name);
+        document.title = name + 'FM — hear who is here';
+      }
+
+      var WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      var WEEKDAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      function isToday(d) {
+        var n = new Date();
+        return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+      }
+      function fmtTime(d) {
+        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+      function showDay(show) {
+        if (show.demo) return show.demoDay;
+        var d = new Date(show.dateTime);
+        return isToday(d) ? 'Tonight' : WEEKDAYS[d.getDay()];
+      }
+      function showMetaLeft(show) {
+        if (show.demo) return show.demoMeta;
+        var d = new Date(show.dateTime);
+        var label = isToday(d) ? 'Tonight' : WEEKDAYS_SHORT[d.getDay()];
+        return label + ' · ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      function showKicker(show) {
+        if (show.demo) return show.demoKicker;
+        var d = new Date(show.dateTime);
+        var day = isToday(d) ? 'Tonight' : WEEKDAYS[d.getDay()];
+        return day + ' · ' + fmtTime(d);
+      }
+      function artistNames(show) {
+        var names = (show.artists || []).map(function (a) { return a.name; }).filter(Boolean);
+        if (!names.length) return show.name || 'Unknown artist';
+        return names.slice(0, 3).join(', ');
+      }
+      function firstSpotifyId(show) {
+        var arts = show.artists || [];
+        for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyId) return arts[i].spotifyId; }
+        return '';
+      }
+      function firstSpotifyUrl(show) {
+        var arts = show.artists || [];
+        for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyUrl) return arts[i].spotifyUrl; }
+        return '';
+      }
+
+      function cardLinks(show) {
+        var out = [];
+        if (show.ticketUrl) out.push('<a href="' + esc(show.ticketUrl) + '" target="_blank" rel="noopener">Tickets</a>');
+        var sp = firstSpotifyUrl(show);
+        if (sp) out.push('<a href="' + esc(sp) + '" target="_blank" rel="noopener">Spotify</a>');
+        if (!out.length) return '';
+        return '<span class="card-links">' + out.join('') + '</span>';
+      }
+
+      function buildCard(show, index, total) {
+        var pal = PALETTES[index % PALETTES.length];
+        var artist = artistNames(show);
+        var step = total > 1 ? Math.min(2.1, 19.8 / (total - 1)) : 0;
+        var freq = (88.1 + index * step).toFixed(1);
+        var venue = show.venue || {};
+        var venueLine = [venue.name, venue.city].filter(Boolean).join(' · ') || 'Venue TBA';
+        var btn = document.createElement('button');
+        btn.className = 'artist-card';
+        btn.type = 'button';
+        btn.setAttribute('aria-label', artist + ' — open artist card');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.dataset.artist = artist;
+        btn.dataset.frequency = freq;
+        btn.dataset.day = showDay(show);
+        btn.dataset.spotifyId = show.demo ? '' : firstSpotifyId(show);
+        if (show.demo) {
+          btn.dataset.set = show.demoTracks.set.join('|');
+          btn.dataset.popular = show.demoTracks.popular.join('|');
+        } else {
+          btn.dataset.set = '';
+          btn.dataset.popular = '';
+        }
+        btn.style.setProperty('--card-bg', pal.bg);
+        btn.style.setProperty('--card-ink', pal.ink);
+        btn.style.setProperty('--shape', pal.shape);
+        var note = show.demo
+          ? 'Demo tracks · a live version would use recent setlists and Spotify popularity.'
+          : 'Live lineup · Ticketmaster · top tracks via Spotify.';
+        btn.innerHTML =
+          '<span class="card-inner">' +
+            '<span class="card-face front">' +
+              '<span class="card-meta"><span>' + esc(showMetaLeft(show)) + '</span><span>' + esc(show.demo ? show.demoGenre : 'Live music') + '</span></span>' +
+              '<span class="card-title"><small>' + esc(venueLine) + '</small><strong>' + esc(artist) + '</strong><span>Open artist</span></span>' +
+            '</span>' +
+            '<span class="card-face back">' +
+              '<span class="back-top"><span><span class="back-kicker">' + esc(showKicker(show)) + '</span><h3>' + esc(artist) + '</h3></span><span class="close-card" aria-label="Close artist card">×</span></span>' +
+              '<span class="mode-switch"><span class="mode-button" data-mode="set" aria-pressed="true">Likely set</span><span class="mode-button" data-mode="popular" aria-pressed="false">Top tracks</span></span>' +
+              '<span class="song-list"></span>' +
+              cardLinks(show) +
+              '<span class="back-note">' + esc(note) + '</span>' +
+            '</span>' +
+          '</span>';
+        btn._demo = !!show.demo;
+        btn._tracks = null;
+        btn._tracksLoading = false;
+        btn._mode = 'set';
+        return btn;
+      }
+
+      function buildStop(show, index) {
+        var b = document.createElement('button');
+        b.className = 'band-stop';
+        b.type = 'button';
+        b.dataset.index = String(index);
+        b.setAttribute('aria-pressed', 'false');
+        var d = show.demo ? null : new Date(show.dateTime);
+        var dayShort = show.demo ? show.demoDay.slice(0, 3) : (isToday(d) ? 'Now' : WEEKDAYS_SHORT[d.getDay()]);
+        b.innerHTML = esc(show._freq) + '<span>' + esc(dayShort) + '</span>';
+        return b;
+      }
+
+      function renderSongs(card, mode) {
+        var names = (card.dataset[mode] || '').split('|').filter(Boolean);
+        var tags = mode === 'set' ? ['Opener', 'Staple', 'Live pick', 'Fan pick', 'Encore'] : ['Popular', 'Popular', 'Rising', 'Popular', 'Deep cut'];
+        if (!names.length) {
+          card.querySelector('.song-list').innerHTML = '<span class="song"><strong>Tap to load top tracks</strong></span>';
+          return;
+        }
+        card.querySelector('.song-list').innerHTML = names.map(function (name, index) {
+          return '<span class="song"><span class="num">' + String(index + 1).padStart(2, '0') + '</span><strong>' + esc(name) + '</strong><span class="tag">' + tags[index] + '</span></span>';
+        }).join('');
+        card.querySelectorAll('.mode-button').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.mode === mode)); });
+      }
+
+      function ensureTracks(card) {
+        if (card._demo) { renderSongs(card, card._mode); return; }
+        if (card._tracks) { renderSongs(card, card._mode); return; }
+        var list = card.querySelector('.song-list');
+        var sid = card.dataset.spotifyId;
+        if (!sid) {
+          list.innerHTML = '<span class="song"><strong>Top tracks unavailable for this act</strong></span>';
+          return;
+        }
+        if (card._tracksLoading) {
+          list.innerHTML = '<span class="song"><strong>Loading top tracks…</strong></span>';
+          return;
+        }
+        card._tracksLoading = true;
+        list.innerHTML = '<span class="song"><strong>Loading top tracks…</strong></span>';
+        fetch(API_BASE + '/api/artist-top?spotifyId=' + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            card._tracksLoading = false;
+            var tracks = (d.topTracks || []).map(function (t) { return t.name; }).filter(Boolean);
+            card._tracks = tracks;
+            card.dataset.set = tracks.join('|');
+            card.dataset.popular = tracks.join('|');
+            if (card.classList.contains('is-flipped')) renderSongs(card, card._mode);
+          })
+          .catch(function () {
+            card._tracksLoading = false;
+            if (card.classList.contains('is-flipped')) {
+              list.innerHTML = '<span class="song"><strong>Couldn\u2019t load tracks — try again</strong></span>';
+            }
+          });
+      }
+
+      function closeCards() {
+        cards.forEach(function (card) { card.classList.remove('is-flipped'); card.setAttribute('aria-expanded', 'false'); });
+      }
+
+      function tuneTo(index, announce) {
+        if (!cards.length) return;
+        index = Math.max(0, Math.min(cards.length - 1, Number(index)));
+        var previous = currentStation;
+        currentStation = index;
+        closeCards();
+        cards.forEach(function (card, cardIndex) {
+          card.classList.toggle('is-selected', cardIndex === index);
+          card.classList.toggle('is-leaving', cardIndex === previous && previous !== index);
+          card.setAttribute('aria-hidden', String(cardIndex !== index));
+          card.tabIndex = cardIndex === index ? 0 : -1;
+        });
+        window.setTimeout(function () { cards.forEach(function (card) { card.classList.remove('is-leaving'); }); }, 650);
+        var card = cards[index];
+        dial.value = String(index);
+        frequencyEl.textContent = card.dataset.frequency;
+        dayEl.textContent = card.dataset.day;
+        detailEl.textContent = card.querySelector('.card-title small').textContent;
+        countEl.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(cards.length).padStart(2, '0');
+        var turn = cards.length > 1 ? -125 + (250 / (cards.length - 1)) * index : 0;
+        knob.style.setProperty('--knob-turn', String(turn) + 'deg');
+        knob.setAttribute('aria-valuenow', String(index));
+        knob.setAttribute('aria-valuetext', card.dataset.frequency + ' FM, ' + card.dataset.artist + ', ' + card.dataset.day);
+        stopButtons.forEach(function (button) { button.setAttribute('aria-pressed', String(Number(button.dataset.index) === index)); });
+        if (announce) showToast(card.dataset.frequency + ' FM · ' + card.dataset.artist);
+      }
+
+      function bindCard(card) {
+        renderSongs(card, 'set');
+        card.addEventListener('click', function (event) {
+          var modeButton = event.target.closest('.mode-button');
+          if (modeButton) {
+            event.stopPropagation();
+            card._mode = modeButton.dataset.mode;
+            ensureTracks(card);
+            return;
+          }
+          if (event.target.closest('.close-card')) { event.stopPropagation(); closeCards(); return; }
+          if (event.target.closest('.card-links a')) return;
+          if (!card.classList.contains('is-selected') || card.classList.contains('is-flipped')) return;
+          card.classList.add('is-flipped');
+          card.setAttribute('aria-expanded', 'true');
+          card._mode = 'set';
+          ensureTracks(card);
+          showToast(card.dataset.artist + (card._demo ? ' · likely set' : ' · top tracks'));
+        });
+      }
+
+      function buildStations(shows, live) {
+        liveMode = live;
+        demoActive = !live;
+        var list = (shows || []).slice(0, MAX_STATIONS);
+        stack.innerHTML = '';
+        stopsWrap.innerHTML = '';
+        cards = [];
+        stopButtons = [];
+        currentStation = 0;
+        list.forEach(function (show, i) {
+          var card = buildCard(show, i, list.length);
+          show._freq = card.dataset.frequency;
+          stack.appendChild(card);
+          cards.push(card);
+          bindCard(card);
+        });
+        list.forEach(function (show, i) {
+          var stop = buildStop(show, i);
+          stop.addEventListener('click', function () { tuneTo(stop.dataset.index, true); });
+          stopsWrap.appendChild(stop);
+          stopButtons.push(stop);
+        });
+        dial.max = String(Math.max(0, list.length - 1));
+        knob.setAttribute('aria-valuemax', String(Math.max(0, list.length - 1)));
+        var spans = list.map(function (show) {
+          return '<span>' + esc(show._freq) + ' · ' + esc(artistNames(show)) + '</span>';
+        });
+        tickerTrack.innerHTML = spans.concat(spans).join('');
+        footerBrand.textContent = live ? 'HereFM · live lineup' : 'HereFM concept · fictional demo lineup';
+        tuneTo(0, false);
+      }
+
+      function timezoneFallback() {
+        var zone = '';
+        try { zone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (error) {}
+        var map = {
+          'America/Vancouver': 'Vancouver', 'America/Toronto': 'Toronto', 'America/Edmonton': 'Edmonton', 'America/Winnipeg': 'Winnipeg',
+          'America/Los_Angeles': 'Los Angeles', 'America/New_York': 'New York', 'America/Chicago': 'Chicago', 'America/Mexico_City': 'Mexico City',
+          'Europe/London': 'London', 'Europe/Paris': 'Paris', 'Europe/Berlin': 'Berlin', 'Europe/Amsterdam': 'Amsterdam',
+          'Australia/Sydney': 'Sydney', 'Australia/Melbourne': 'Melbourne', 'Asia/Tokyo': 'Tokyo', 'Asia/Singapore': 'Singapore'
+        };
+        setCity(map[zone] || 'Vancouver', false);
+      }
+
+      function reverseGeocode(lat, lon) {
+        var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + encodeURIComponent(lat) +
+          '&longitude=' + encodeURIComponent(lon) + '&localityLanguage=en';
+        return fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+          return cleanCity(d.city || d.locality || d.principalSubdivision || 'Here');
+        }).catch(function () { return 'Here'; });
+      }
+
+      function loadLive(lat, lon) {
+        showToast('Tuning in…');
+        reverseGeocode(lat, lon).then(function (city) {
+          setCity(city, true);
+          return fetch(API_BASE + '/api/shows?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon) +
+            '&city=' + encodeURIComponent(city) + '&days=14').then(function (r) { return r.json(); });
+        }).then(function (data) {
+          if (data && data.shows && data.shows.length) {
+            buildStations(data.shows, true);
+            showToast(data.shows.length > MAX_STATIONS ? MAX_STATIONS + ' signals near you' : data.shows.length + ' signals tuned in');
+          } else {
+            showToast('No live shows found — demo lineup');
+          }
+        }).catch(function () {
+          showToast('Live data unreachable — demo lineup');
+        });
+      }
+
+      function requestLocation(manual) {
+        if (!navigator.geolocation) {
+          timezoneFallback();
+          if (manual) showToast('Location is unavailable in this browser');
+          return;
+        }
+        locateButton.classList.add('is-searching');
+        statusEl.textContent = 'Locating';
+        navigator.geolocation.getCurrentPosition(function (position) {
+          loadLive(position.coords.latitude, position.coords.longitude);
+          if (manual) showToast('Retuning…');
+        }, function () {
+          timezoneFallback();
+          if (manual) showToast('Using your timezone city instead');
+        }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 3600000 });
+      }
+
+      // ---- tuner mechanics (unchanged) ----------------------------------------
+      dial.addEventListener('input', function () { tuneTo(dial.value, false); });
+      dial.addEventListener('change', function () { tuneTo(dial.value, true); });
+      document.getElementById('tunePrev').addEventListener('click', function () { tuneTo((currentStation - 1 + cards.length) % cards.length, true); });
+      document.getElementById('tuneNext').addEventListener('click', function () { tuneTo((currentStation + 1) % cards.length, true); });
+      knob.addEventListener('pointerdown', function (event) {
+        knobDragStart = event.clientX;
+        knobStartStation = currentStation;
+        knobMoved = false;
+        knob.setPointerCapture(event.pointerId);
+      });
+      knob.addEventListener('pointermove', function (event) {
+        if (knobDragStart === null) return;
+        var delta = event.clientX - knobDragStart;
+        if (Math.abs(delta) > 5) knobMoved = true;
+        tuneTo(Math.max(0, Math.min(cards.length - 1, knobStartStation + Math.round(delta / 28))), false);
+      });
+      knob.addEventListener('pointerup', function (event) {
+        if (knobDragStart === null) return;
+        knob.releasePointerCapture(event.pointerId);
+        knobDragStart = null;
+        if (knobMoved && cards[currentStation]) showToast(cards[currentStation].dataset.frequency + ' FM · ' + cards[currentStation].dataset.artist);
+        window.setTimeout(function () { knobMoved = false; }, 0);
+      });
+      knob.addEventListener('click', function () {
+        if (!knobMoved) tuneTo((currentStation + 1) % cards.length, true);
+      });
+      knob.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') { event.preventDefault(); tuneTo(Math.max(0, currentStation - 1), true); }
+        if (event.key === 'ArrowRight' || event.key === 'ArrowUp') { event.preventDefault(); tuneTo(Math.min(cards.length - 1, currentStation + 1), true); }
+        if (event.key === 'Home') { event.preventDefault(); tuneTo(0, true); }
+        if (event.key === 'End') { event.preventDefault(); tuneTo(cards.length - 1, true); }
+      });
+      document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeCards(); });
+      locateButton.addEventListener('click', function () { requestLocation(true); });
+
+      // ---- boot ----------------------------------------------------------------
+      buildStations(DEMO_SHOWS, false);
+      timezoneFallback();
+      (function () {
+        // ?lat=..&lon=.. preview override (also lets anyone preview another city).
+        var q = new URLSearchParams(window.location.search);
+        var tLat = parseFloat(q.get('lat'));
+        var tLon = parseFloat(q.get('lon'));
+        if (Number.isFinite(tLat) && Number.isFinite(tLon)) { loadLive(tLat, tLon); return; }
+        requestLocation(false);
+      })();
+    }());
+  </script>
+</body>
+</html>

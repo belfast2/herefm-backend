@@ -445,6 +445,7 @@
       var liveMode = false;
       var demoActive = true;
       var lastTickerSig = '';
+      var lastSwipeAt = 0;
 
       var PALETTES = [
         { bg: 'var(--pink)', ink: '#15130f', shape: '#ff5638' },
@@ -756,6 +757,7 @@
       function bindCard(card) {
         renderSongs(card, 'set');
         card.addEventListener('click', function (event) {
+          if (Date.now() - lastSwipeAt < 600) return; // a swipe just ended — this click is its tail, not a tap
           var modeButton = event.target.closest('.mode-button');
           if (modeButton) {
             event.stopPropagation();
@@ -942,6 +944,27 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(fitCards, 250);
       });
+      // Swipeable cards (mobile): horizontal swipe on the card stack tunes prev/next.
+      // A swipe is not a tap, so the click that trails it must not flip the card.
+      var swipeStart = null;
+      stack.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) { swipeStart = null; return; }
+        var t = event.changedTouches[0];
+        swipeStart = { x: t.clientX, y: t.clientY };
+      }, { passive: true });
+      stack.addEventListener('touchend', function (event) {
+        if (!swipeStart || !cards.length) { swipeStart = null; return; }
+        var t = event.changedTouches[0];
+        var dx = t.clientX - swipeStart.x;
+        var dy = t.clientY - swipeStart.y;
+        swipeStart = null;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+          lastSwipeAt = Date.now();
+          if (dx < 0) tuneTo(currentStation + 1 >= cards.length ? 0 : currentStation + 1, true);
+          else tuneTo(currentStation - 1 < 0 ? cards.length - 1 : currentStation - 1, true);
+        }
+      }, { passive: true });
+      stack.addEventListener('touchcancel', function () { swipeStart = null; }, { passive: true });
       locateButton.addEventListener('click', function () { requestLocation(true); });
 
       // ---- boot ----------------------------------------------------------------

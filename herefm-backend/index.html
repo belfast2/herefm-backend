@@ -261,6 +261,15 @@
     .close-card { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
     .mode-switch { display: flex; gap: 7px; margin: 24px 0 16px; } .mode-button { border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 8px 12px; background: transparent; color: #bec4b8; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
     .mode-button[aria-pressed="true"] { background: var(--acid); border-color: var(--acid); color: #10130f; }
+    .track-heading { display: block; margin: 22px 0 2px; color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .track-player { display: block; margin: 10px 0 4px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 28px rgba(0,0,0,.35); }
+    .track-player[hidden] { display: none; }
+    .track-player iframe { display: block; width: 100%; height: 152px; border: 0; }
+    .song[data-track-id] { cursor: pointer; border-radius: 8px; }
+    .song[data-track-id]:hover { background: rgba(255,255,255,.05); }
+    .song[data-track-id] .tag { color: var(--acid); }
+    .song.is-playing { background: rgba(201,255,63,.1); }
+    .song.is-playing .tag { font-weight: 800; }
     .song-list { min-height: 0; overflow: auto; border-top: 1px solid rgba(255,255,255,.22); } .song { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.16); }
     .song .num { color: #858e7f; font-size: 11px; } .song strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; } .song .tag { color: #9fa898; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
     .back-note { margin: auto 0 0; padding-top: 18px; color: #9fa898; font-size: 10px; letter-spacing: .04em; }
@@ -630,14 +639,17 @@
             '</span>' +
             '<span class="card-face back">' +
               '<span class="back-top"><span><span class="back-kicker">' + esc(showKicker(show)) + '</span><h3>' + esc(displayArtist) + '</h3></span><span class="close-card" aria-label="Close artist card">×</span></span>' +
-              '<span class="mode-switch"><span class="mode-button" data-mode="set" aria-pressed="true">Likely set</span><span class="mode-button" data-mode="popular" aria-pressed="false">Top tracks</span></span>' +
+              (show.demo
+                ? '<span class="mode-switch"><span class="mode-button" data-mode="set" aria-pressed="true">Likely set</span><span class="mode-button" data-mode="popular" aria-pressed="false">Top tracks</span></span>'
+                : '<span class="track-heading">Top tracks · tap to preview</span><span class="track-player" hidden></span>') +
               '<span class="song-list"></span>' +
               cardLinks(show) +
               '<span class="back-note">' + esc(note) + '</span>' +
             '</span>' +
           '</span>';
         btn._demo = !!show.demo;
-        btn._tracks = null;
+        btn._tracksLoaded = false;
+        btn._trackObjs = null;
         btn._tracksLoading = false;
         btn._mode = 'set';
         return btn;
@@ -688,9 +700,41 @@
           .catch(function () {});
       }
 
+      function trackIdFromUrl(url) {
+        var m = String(url || '').match(/\/track\/([A-Za-z0-9]+)/);
+        return m ? m[1] : '';
+      }
+
+      function renderTopTracks(card) {
+        var list = card.querySelector('.song-list');
+        var tracks = card._trackObjs || [];
+        if (!tracks.length) {
+          list.innerHTML = '<span class="song"><strong>Top tracks unavailable for this act</strong></span>';
+          return;
+        }
+        list.innerHTML = tracks.map(function (t, index) {
+          var playable = t.id ? ' data-track-id="' + esc(t.id) + '"' : '';
+          var tag = t.id ? 'Preview' : '';
+          return '<span class="song"' + playable + '><span class="num">' + String(index + 1).padStart(2, '0') + '</span><strong>' + esc(t.name) + '</strong><span class="tag">' + tag + '</span></span>';
+        }).join('');
+      }
+
+      function loadTrackPlayer(card, trackId) {
+        var wrap = card.querySelector('.track-player');
+        if (!wrap || !trackId) return;
+        wrap.hidden = false;
+        wrap.innerHTML = '<iframe title="Spotify preview player" src="https://open.spotify.com/embed/track/' + encodeURIComponent(trackId) + '?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        card.querySelectorAll('.song[data-track-id]').forEach(function (row) {
+          var playing = row.dataset.trackId === trackId;
+          row.classList.toggle('is-playing', playing);
+          var tag = row.querySelector('.tag');
+          if (tag) tag.textContent = playing ? 'Playing' : 'Preview';
+        });
+      }
+
       function ensureTracks(card) {
         if (card._demo) { renderSongs(card, card._mode); return; }
-        if (card._tracks) { renderSongs(card, card._mode); return; }
+        if (card._tracksLoaded) { renderTopTracks(card); return; }
         var list = card.querySelector('.song-list');
         var sid = card.dataset.spotifyId;
         if (!sid) {
@@ -707,18 +751,16 @@
           .then(function (r) { return r.json(); })
           .then(function (d) {
             card._tracksLoading = false;
-            var tracks = (d.topTracks || []).map(function (t) { return t.name; }).filter(Boolean);
-            card._tracks = tracks;
-            card.dataset.set = tracks.join('|');
-            card.dataset.popular = tracks.join('|');
+            card._tracksLoaded = true;
+            card._trackObjs = (d.topTracks || []).map(function (t) {
+              return { name: t.name, id: trackIdFromUrl(t.spotifyUrl), url: t.spotifyUrl };
+            }).filter(function (t) { return t.name; });
             if (d.image) setPhoto(card, d.image);
-            if (card.classList.contains('is-flipped')) renderSongs(card, card._mode);
+            renderTopTracks(card);
           })
           .catch(function () {
             card._tracksLoading = false;
-            if (card.classList.contains('is-flipped')) {
-              list.innerHTML = '<span class="song"><strong>Couldn\u2019t load tracks — try again</strong></span>';
-            }
+            list.innerHTML = '<span class="song"><strong>Couldn\u2019t load tracks — try again</strong></span>';
           });
       }
 
@@ -767,6 +809,8 @@
           }
           if (event.target.closest('.close-card')) { event.stopPropagation(); closeCards(); return; }
           if (event.target.closest('.card-links a')) return;
+          var songRow = event.target.closest('.song[data-track-id]');
+          if (songRow) { loadTrackPlayer(card, songRow.dataset.trackId); return; }
           if (!card.classList.contains('is-selected') || card.classList.contains('is-flipped')) return;
           card.classList.add('is-flipped');
           card.setAttribute('aria-expanded', 'true');

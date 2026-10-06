@@ -258,13 +258,13 @@
     .back { transform: rotateY(180deg) translateZ(1px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; padding: clamp(24px, 4vw, 46px); background: #12140f; color: #f6f7f2; cursor: default; }
     .back-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; } .back-kicker { color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .back h3 { margin: 7px 0 0; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; font-family: "Anton", sans-serif; font-size: clamp(46px, 5.8vw, 78px); font-weight: 400; line-height: .92; text-transform: uppercase; }
-    .close-card { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
+    .close-card { width: 44px; height: 44px; flex: 0 0 auto; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 26px; line-height: 1; }
     .mode-switch { display: flex; gap: 7px; margin: 24px 0 16px; } .mode-button { border: 1px solid rgba(255,255,255,.28); border-radius: 999px; padding: 8px 12px; background: transparent; color: #bec4b8; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
     .mode-button[aria-pressed="true"] { background: var(--acid); border-color: var(--acid); color: #10130f; }
     .track-heading { display: block; margin: 22px 0 2px; color: var(--acid); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .track-player { display: block; margin: 10px 0 4px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 28px rgba(0,0,0,.35); }
     .track-player[hidden] { display: none; }
-    .track-player iframe { display: block; width: 100%; height: 152px; border: 0; }
+    .track-player iframe { display: block; width: 100%; height: 80px; border: 0; }
     .song[data-track-id] { cursor: pointer; border-radius: 8px; }
     .song[data-track-id]:hover { background: rgba(255,255,255,.05); }
     .song[data-track-id] .tag { color: var(--acid); }
@@ -642,8 +642,9 @@
               '<span class="back-top"><span><span class="back-kicker">' + esc(showKicker(show)) + '</span><h3>' + esc(displayArtist) + '</h3></span><span class="close-card" aria-label="Close artist card">×</span></span>' +
               (show.demo
                 ? '<span class="mode-switch"><span class="mode-button" data-mode="set" aria-pressed="true">Likely set</span><span class="mode-button" data-mode="popular" aria-pressed="false">Top tracks</span></span>'
-                : '<span class="track-heading">Top tracks · tap to preview</span><span class="track-player" hidden></span>') +
+                : '<span class="track-heading">Top tracks · tap to preview</span>') +
               '<span class="song-list"></span>' +
+              (show.demo ? '' : '<span class="track-player" hidden></span>') +
               cardLinks(show) +
               '<span class="back-note">' + esc(note) + '</span>' +
             '</span>' +
@@ -724,7 +725,7 @@
         var wrap = card.querySelector('.track-player');
         if (!wrap || !trackId) return;
         wrap.hidden = false;
-        wrap.innerHTML = '<iframe title="Spotify preview player" src="https://open.spotify.com/embed/track/' + encodeURIComponent(trackId) + '?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        wrap.innerHTML = '<iframe title="Spotify preview player" src="https://open.spotify.com/embed/track/' + encodeURIComponent(trackId) + '?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
         card.querySelectorAll('.song[data-track-id]').forEach(function (row) {
           var playing = row.dataset.trackId === trackId;
           row.classList.toggle('is-playing', playing);

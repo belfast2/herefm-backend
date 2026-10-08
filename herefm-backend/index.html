@@ -225,6 +225,8 @@
     .step-controls { display: grid; grid-template-columns: 52px 104px 52px 52px; align-items: center; justify-content: center; gap: 16px; margin-top: auto; padding-top: 26px; }
     .step-button { width: 52px; height: 52px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 19px; transition: color .2s ease, border-color .2s ease; }
     .step-button:hover { border-color: var(--acid); color: var(--acid); }
+    .seek-icon { width: 24px; height: 24px; fill: currentColor; display: block; margin: auto; }
+    .seek-icon.flip { transform: scaleX(-1); }
     .radio-toggle[aria-pressed="false"] { opacity: .38; }
     .now-playing { margin: 10px 2px 0; min-height: 20px; font-size: 12px; font-weight: 700; letter-spacing: .05em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .now-playing.is-live { color: var(--ink); }
@@ -401,9 +403,9 @@
             </div>
           </div>
           <div class="step-controls">
-            <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">&#9198;&#65038;</button>
+            <button class="step-button" id="tunePrev" type="button" aria-label="Previous show"><svg class="seek-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="2.2" height="12" rx="1"/><path d="M12 6v12L6.5 12z"/><path d="M18.5 6v12L11 12z"/></svg></button>
             <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
-            <button class="step-button" id="tuneNext" type="button" aria-label="Next show">&#9199;&#65038;</button>
+            <button class="step-button" id="tuneNext" type="button" aria-label="Next show"><svg class="seek-icon flip" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="2.2" height="12" rx="1"/><path d="M12 6v12L6.5 12z"/><path d="M18.5 6v12L11 12z"/></svg></button>
             <button class="step-button radio-toggle" id="radioToggle" type="button" aria-label="Mute radio" aria-pressed="true" title="Mute radio">🔊</button>
           </div>
         </div>

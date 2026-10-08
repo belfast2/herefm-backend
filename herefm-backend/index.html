@@ -201,7 +201,8 @@
     .receiver-top { display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.16); color: var(--radio-muted); font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     .console-label { display: flex; align-items: center; gap: 10px; margin-top: 16px; color: var(--radio-muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
     .console-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: studio-pulse 1.7s ease-in-out infinite; }
-    .frequency-window { margin-top: 16px; padding: clamp(19px, 2.5vw, 30px); border: 1px solid rgba(201,255,63,.35); border-radius: 7px; background: #171d12; box-shadow: inset 0 0 24px rgba(0,0,0,.72), 0 0 18px rgba(201,255,63,.08); }
+    .frequency-window { position: relative; margin-top: 16px; padding: clamp(19px, 2.5vw, 30px); border: 1px solid rgba(201,255,63,.35); border-radius: 7px; background: #171d12; box-shadow: inset 0 0 24px rgba(0,0,0,.72), 0 0 18px rgba(201,255,63,.08); }
+    .frequency-window .signal { position: absolute; top: 12px; right: 16px; height: auto; }
     .station-readout { display: flex; align-items: baseline; gap: 10px; font-family: "Anton", sans-serif; font-size: clamp(76px, 8.5vw, 126px); line-height: .8; letter-spacing: -.035em; font-variant-numeric: tabular-nums; color: var(--acid); text-shadow: 0 0 18px rgba(201,255,63,.28); }
     .station-readout small { color: var(--acid); font: 700 13px/1 "Manrope", sans-serif; letter-spacing: .08em; }
     .station-copy { margin-top: 20px; color: var(--radio-ink); }
@@ -221,7 +222,7 @@
     .band-stop:first-child::before { left: 1px; } .band-stop:last-child::before { left: auto; right: 1px; }
     .band-stop span { display: block; margin-top: 3px; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
     .band-stop[aria-pressed="true"] { color: var(--acid); }
-    .step-controls { display: grid; grid-template-columns: 42px 92px minmax(76px, 1fr) 42px 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
+    .step-controls { display: grid; grid-template-columns: 42px 92px 42px 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
     .step-button { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 17px; transition: color .2s ease, border-color .2s ease; }
     .step-button:hover { border-color: var(--acid); color: var(--acid); }
     .radio-toggle[aria-pressed="false"] { opacity: .38; }
@@ -325,7 +326,7 @@
       .broadcast { grid-template-columns: minmax(300px, .72fr) minmax(390px, 1fr); gap: 28px; }
       .tuner-console { padding: 24px; } .stage { padding-left: 0; }
       .station-readout { font-size: clamp(72px, 11vw, 100px); } .card-title strong { font-size: clamp(54px, 8vw, 78px); }
-      .step-controls { grid-template-columns: 38px 78px minmax(66px, 1fr) 38px; gap: 10px; }
+      .step-controls { grid-template-columns: 38px 78px 38px 38px; gap: 10px; }
       .step-button { width: 38px; height: 38px; } .tune-knob { width: 74px; height: 74px; }
     }
     @media (max-width: 700px) {
@@ -337,7 +338,7 @@
       .tuner-region { margin-top: 28px; }
       .broadcast { display: block; min-height: 0; } .tuner-console { min-height: 520px; padding: 24px 20px; border-width: 6px; }
       .station-readout { font-size: clamp(76px, 25vw, 110px); } .station-copy { margin-top: 17px; } .dial-wrap { margin-top: 24px; }
-      .step-controls { grid-template-columns: 36px 76px minmax(60px, 1fr) 36px 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
+      .step-controls { grid-template-columns: 36px 76px 36px 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
       .signal .sig-label { display: none; }
       .stage { padding: 28px 0; } .stack { min-height: 450px; } .artist-card { min-height: 450px; }
       .front, .back { padding: 21px; } .card-title strong { font-size: clamp(52px, 17vw, 74px); } .back h3 { font-size: 43px; }
@@ -384,6 +385,7 @@
           <div class="receiver-top"><span>Here.fm Receiver</span><span>Live band</span></div>
           <span class="console-label">Week band · signal live</span>
           <div class="frequency-window">
+            <span class="signal" aria-hidden="true"><span class="sig-bars"><i></i><i></i><i></i><i></i></span><span class="sig-label">Signal</span></span>
             <div class="station-readout"><span id="frequencyReadout">93.1</span><small>FM</small></div>
             <div class="station-copy"><strong class="station-day" id="stationDay">Tonight</strong><span class="station-detail" id="stationDetail">Granville Room · Downtown</span></div>
           </div>
@@ -401,9 +403,8 @@
           <div class="step-controls">
             <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">←</button>
             <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
-            <span class="signal" aria-hidden="true"><span class="sig-bars"><i></i><i></i><i></i><i></i></span><span class="sig-label">Signal strength</span></span>
             <button class="step-button" id="tuneNext" type="button" aria-label="Next show">→</button>
-            <button class="step-button radio-toggle" id="radioToggle" type="button" aria-label="Toggle radio autoplay" aria-pressed="true" title="Radio autoplay">📻</button>
+            <button class="step-button radio-toggle" id="radioToggle" type="button" aria-label="Mute radio" aria-pressed="true" title="Mute radio">🔊</button>
           </div>
         </div>
         <div class="stage">
@@ -982,11 +983,62 @@
         radioQi = 0;
         if (!silent) setNowPlaying(radioOn ? 'Radio on · tune to play' : 'Radio off', false);
       }
-      // Spotify no longer returns 30s preview URLs, so radio mode matches each
-      // top track against the free iTunes Search API (no key, CORS-open) and
-      // plays its 30-second preview instead. The match must satisfy BOTH the
-      // track title and the headliner artist — a title-only match from a
-      // different artist is never played, even if nothing else matched.
+      // Deezer has the deepest free catalog of the no-key APIs, but it doesn't
+      // send CORS headers — so this uses its JSONP output via script injection.
+      // Same strict rule: title AND headliner artist must both match.
+      var deezerSeq = 0;
+      function deezerSearch(query) {
+        return new Promise(function (resolve) {
+          var cb = '__dz' + (++deezerSeq) + '_' + Date.now();
+          var script = document.createElement('script');
+          var done = false;
+          var cleanup = function () {
+            if (done) return; done = true;
+            clearTimeout(timer);
+            try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+            if (script.parentNode) script.parentNode.removeChild(script);
+          };
+          var timer = setTimeout(function () { cleanup(); resolve([]); }, 9000);
+          window[cb] = function (d) { cleanup(); resolve((d && d.data) || []); };
+          script.onerror = function () { cleanup(); resolve([]); };
+          script.src = 'https://api.deezer.com/search?q=' + encodeURIComponent(query) + '&limit=8&output=jsonp&callback=' + cb;
+          document.head.appendChild(script);
+        });
+      }
+      function deezerPreview(primaryArtist, title) {
+        var norm = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(); };
+        var nt = norm(title), na = norm(primaryArtist);
+        if (!nt || !na) return Promise.resolve(null);
+        var titleHit = function (r) {
+          var rn = norm(r.title);
+          return rn && (rn === nt || rn.indexOf(nt) === 0 || nt.indexOf(rn) === 0);
+        };
+        var artistHit = function (r) {
+          var ra = norm(r.artist && r.artist.name);
+          return ra && (ra === na || ra.indexOf(na) === 0 || na.indexOf(ra) === 0);
+        };
+        return Promise.all([deezerSearch(primaryArtist + ' ' + title), deezerSearch(title)]).then(function (lists) {
+          var seen = {}, i, j, r, key;
+          for (i = 0; i < lists.length; i++) {
+            for (j = 0; j < lists[i].length; j++) {
+              r = lists[i][j];
+              key = r.id || r.preview;
+              if (!r.preview || seen[key]) continue;
+              seen[key] = true;
+              if (titleHit(r) && artistHit(r)) return { name: title, artist: primaryArtist, preview: r.preview };
+            }
+          }
+          return null;
+        });
+      }
+      // Robust chain: Spotify preview (usually null now) -> Deezer -> iTunes.
+      function audioPreview(primaryArtist, title) {
+        return deezerPreview(primaryArtist, title).then(function (hit) {
+          if (hit) return hit;
+          return itunesPreview(primaryArtist, title);
+        });
+      }
+      // Fallback: iTunes Search API (CORS-open fetch). Same strict rule.
       function itunesPreview(primaryArtist, title) {
         var norm = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(); };
         var nt = norm(title), na = norm(primaryArtist);
@@ -1050,7 +1102,7 @@
           var primaryArtist = card.dataset.headliner || (card.dataset.artist || '').split(',')[0].trim();
           var jobs = tracks.map(function (t) {
             if (t.preview) return Promise.resolve({ name: t.name, artist: primaryArtist, preview: t.preview });
-            return itunesPreview(primaryArtist, t.name);
+            return audioPreview(primaryArtist, t.name);
           });
           Promise.all(jobs).then(function (previews) {
             if (myTune !== radioTuneSeq) return; // user tuned away while resolving
@@ -1070,6 +1122,9 @@
           event.stopPropagation();
           radioOn = !radioOn;
           radioToggle.setAttribute('aria-pressed', String(radioOn));
+          radioToggle.textContent = radioOn ? '🔊' : '🔇';
+          radioToggle.setAttribute('aria-label', radioOn ? 'Mute radio' : 'Unmute radio');
+          radioToggle.setAttribute('title', radioOn ? 'Mute radio' : 'Unmute radio');
           if (!radioOn) { radioStop(); }
           else if (cards[currentStation]) radioStartFor(cards[currentStation]);
         });

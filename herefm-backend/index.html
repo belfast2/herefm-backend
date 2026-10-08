@@ -222,15 +222,15 @@
     .band-stop:first-child::before { left: 1px; } .band-stop:last-child::before { left: auto; right: 1px; }
     .band-stop span { display: block; margin-top: 3px; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
     .band-stop[aria-pressed="true"] { color: var(--acid); }
-    .step-controls { display: grid; grid-template-columns: 42px 92px 42px 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
-    .step-button { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 17px; transition: color .2s ease, border-color .2s ease; }
+    .step-controls { display: grid; grid-template-columns: 52px 104px 52px 52px; align-items: center; justify-content: center; gap: 16px; margin-top: auto; padding-top: 26px; }
+    .step-button { width: 52px; height: 52px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 19px; transition: color .2s ease, border-color .2s ease; }
     .step-button:hover { border-color: var(--acid); color: var(--acid); }
     .radio-toggle[aria-pressed="false"] { opacity: .38; }
     .now-playing { margin: 10px 2px 0; min-height: 20px; font-size: 12px; font-weight: 700; letter-spacing: .05em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .now-playing.is-live { color: var(--ink); }
     .now-playing.is-live::before { content: "● "; color: var(--orange); animation: np-pulse 1.6s ease-in-out infinite; }
     @keyframes np-pulse { 50% { opacity: .35; } }
-    .tune-knob { width: 92px; height: 92px; position: relative; border: 3px solid #0b0906; border-radius: 50%; background: repeating-conic-gradient(from -6deg, #3b342a 0deg 7deg, #211c14 7deg 14deg); box-shadow: 0 10px 22px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,.22), inset 0 -6px 10px rgba(0,0,0,.55), 0 0 0 5px #161310, 0 0 0 6px #57503f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
+    .tune-knob { width: 104px; height: 104px; position: relative; border: 3px solid #0b0906; border-radius: 50%; background: repeating-conic-gradient(from -6deg, #3b342a 0deg 7deg, #211c14 7deg 14deg); box-shadow: 0 10px 22px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,.22), inset 0 -6px 10px rgba(0,0,0,.55), 0 0 0 5px #161310, 0 0 0 6px #57503f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
     .tune-knob:active { cursor: grabbing; }
     .tune-knob::before { content: ""; position: absolute; inset: 27%; border-radius: 50%; background: radial-gradient(circle at 38% 30%, #e3c078 0%, #a37c3a 52%, #6b4d22 100%); box-shadow: inset 0 2px 3px rgba(255,255,255,.55), inset 0 -2px 4px rgba(0,0,0,.45), 0 2px 5px rgba(0,0,0,.5); }
     .tune-knob span { width: 5px; height: 30px; position: absolute; z-index: 1; left: 50%; top: 5px; border-radius: 3px; background: #f7efdc; box-shadow: 0 0 8px rgba(247,239,220,.8), 0 1px 2px rgba(0,0,0,.6); transform: translateX(-50%); }
@@ -326,8 +326,8 @@
       .broadcast { grid-template-columns: minmax(300px, .72fr) minmax(390px, 1fr); gap: 28px; }
       .tuner-console { padding: 24px; } .stage { padding-left: 0; }
       .station-readout { font-size: clamp(72px, 11vw, 100px); } .card-title strong { font-size: clamp(54px, 8vw, 78px); }
-      .step-controls { grid-template-columns: 38px 78px 38px 38px; gap: 10px; }
-      .step-button { width: 38px; height: 38px; } .tune-knob { width: 74px; height: 74px; }
+      .step-controls { grid-template-columns: 46px 88px 46px 46px; gap: 12px; }
+      .step-button { width: 46px; height: 46px; } .tune-knob { width: 88px; height: 88px; }
     }
     @media (max-width: 700px) {
       .page { padding-inline: 14px; } .page::before { background-size: 48px 48px; } .topline { font-size: 10px; }
@@ -338,7 +338,7 @@
       .tuner-region { margin-top: 28px; }
       .broadcast { display: block; min-height: 0; } .tuner-console { min-height: 520px; padding: 24px 20px; border-width: 6px; }
       .station-readout { font-size: clamp(76px, 25vw, 110px); } .station-copy { margin-top: 17px; } .dial-wrap { margin-top: 24px; }
-      .step-controls { grid-template-columns: 36px 76px 36px 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
+      .step-controls { grid-template-columns: 44px 84px 44px 44px; padding-top: 24px; } .step-button { width: 44px; height: 44px; } .tune-knob { width: 84px; height: 84px; }
       .signal .sig-label { display: none; }
       .stage { padding: 28px 0; } .stack { min-height: 450px; } .artist-card { min-height: 450px; }
       .front, .back { padding: 21px; } .card-title strong { font-size: clamp(52px, 17vw, 74px); } .back h3 { font-size: 43px; }
@@ -401,9 +401,9 @@
             </div>
           </div>
           <div class="step-controls">
-            <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">←</button>
+            <button class="step-button" id="tunePrev" type="button" aria-label="Previous show">&#9198;&#65038;</button>
             <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
-            <button class="step-button" id="tuneNext" type="button" aria-label="Next show">→</button>
+            <button class="step-button" id="tuneNext" type="button" aria-label="Next show">&#9199;&#65038;</button>
             <button class="step-button radio-toggle" id="radioToggle" type="button" aria-label="Mute radio" aria-pressed="true" title="Mute radio">🔊</button>
           </div>
         </div>

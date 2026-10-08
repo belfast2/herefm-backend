@@ -593,6 +593,11 @@
         for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyId) return arts[i].spotifyId; }
         return '';
       }
+      function firstSpotifyArtist(show) {
+        var arts = show.artists || [];
+        for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyId) return arts[i].name || ''; }
+        return '';
+      }
       function firstSpotifyUrl(show) {
         var arts = show.artists || [];
         for (var i = 0; i < arts.length; i++) { if (arts[i].spotifyUrl) return arts[i].spotifyUrl; }
@@ -625,6 +630,7 @@
         btn.dataset.frequency = freq;
         btn.dataset.day = showDay(show);
         btn.dataset.spotifyId = show.demo ? '' : firstSpotifyId(show);
+        btn.dataset.headliner = show.demo ? '' : firstSpotifyArtist(show);
         if (show.demo) {
           btn.dataset.set = show.demoTracks.set.join('|');
           btn.dataset.popular = show.demoTracks.popular.join('|');
@@ -978,39 +984,40 @@
       }
       // Spotify no longer returns 30s preview URLs, so radio mode matches each
       // top track against the free iTunes Search API (no key, CORS-open) and
-      // plays its 30-second preview instead. Search is by title; the artist is
-      // cross-checked against the bill so co-headliner shows match the right act.
-      function itunesPreview(billArtists, title) {
-        var q = encodeURIComponent(title);
-        return fetch('https://itunes.apple.com/search?term=' + q + '&media=music&entity=song&limit=8')
-          .then(function (r) { return r.json(); })
-          .then(function (d) {
-            var results = (d && d.results) || [];
-            var norm = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(); };
-            var nt = norm(title);
-            var bill = (billArtists || []).map(norm).filter(Boolean);
-            var titleHit = function (r) {
-              var rn = norm(r.trackName);
-              return rn && (rn === nt || rn.indexOf(nt) === 0 || nt.indexOf(rn) === 0);
-            };
-            var artistHit = function (r) {
-              var ra = norm(r.artistName);
-              return ra && bill.some(function (b) { return ra === b || ra.indexOf(b) === 0 || b.indexOf(ra) === 0; });
-            };
-            var i, r;
-            for (i = 0; i < results.length; i++) { // title + bill artist match
-              r = results[i];
-              if (r.previewUrl && titleHit(r) && artistHit(r)) return { name: title, artist: r.artistName, preview: r.previewUrl };
+      // plays its 30-second preview instead. The match must satisfy BOTH the
+      // track title and the headliner artist — a title-only match from a
+      // different artist is never played, even if nothing else matched.
+      function itunesPreview(primaryArtist, title) {
+        var norm = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(); };
+        var nt = norm(title), na = norm(primaryArtist);
+        if (!nt || !na) return Promise.resolve(null);
+        var titleHit = function (r) {
+          var rn = norm(r.trackName);
+          return rn && (rn === nt || rn.indexOf(nt) === 0 || nt.indexOf(rn) === 0);
+        };
+        var artistHit = function (r) {
+          var ra = norm(r.artistName);
+          return ra && (ra === na || ra.indexOf(na) === 0 || na.indexOf(ra) === 0);
+        };
+        var search = function (term) {
+          return fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(term) + '&media=music&entity=song&limit=6')
+            .then(function (resp) { return resp.json(); })
+            .then(function (d) { return (d && d.results) || []; })
+            .catch(function () { return []; });
+        };
+        return Promise.all([search(primaryArtist + ' ' + title), search(title)]).then(function (lists) {
+          var seen = {}, i, j, r, key;
+          for (i = 0; i < lists.length; i++) {
+            for (j = 0; j < lists[i].length; j++) {
+              r = lists[i][j];
+              key = r.trackId || r.previewUrl;
+              if (!r.previewUrl || seen[key]) continue;
+              seen[key] = true;
+              if (titleHit(r) && artistHit(r)) return { name: title, artist: primaryArtist, preview: r.previewUrl };
             }
-            for (i = 0; i < results.length; i++) { // title match, any artist
-              r = results[i];
-              if (r.previewUrl && titleHit(r)) return { name: r.trackName, artist: r.artistName, preview: r.previewUrl };
-            }
-            r = results[0]; // last resort: top result
-            if (r && r.previewUrl) return { name: r.trackName, artist: r.artistName, preview: r.previewUrl };
-            return null;
-          })
-          .catch(function () { return null; });
+          }
+          return null;
+        });
       }
       function radioPlayTrack() {
         var t = radioQueue[radioQi];
@@ -1040,10 +1047,10 @@
         ensureTracks(card, function () {
           if (myTune !== radioTuneSeq) return; // user tuned away while loading
           var tracks = (card._trackObjs || []).slice(0, 4);
-          var billArtists = (card._artists || []).map(function (a) { return a.name || a; });
+          var primaryArtist = card.dataset.headliner || (card.dataset.artist || '').split(',')[0].trim();
           var jobs = tracks.map(function (t) {
-            if (t.preview) return Promise.resolve({ name: t.name, artist: radioArtist, preview: t.preview });
-            return itunesPreview(billArtists, t.name);
+            if (t.preview) return Promise.resolve({ name: t.name, artist: primaryArtist, preview: t.preview });
+            return itunesPreview(primaryArtist, t.name);
           });
           Promise.all(jobs).then(function (previews) {
             if (myTune !== radioTuneSeq) return; // user tuned away while resolving

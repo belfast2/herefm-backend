@@ -221,9 +221,14 @@
     .band-stop:first-child::before { left: 1px; } .band-stop:last-child::before { left: auto; right: 1px; }
     .band-stop span { display: block; margin-top: 3px; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }
     .band-stop[aria-pressed="true"] { color: var(--acid); }
-    .step-controls { display: grid; grid-template-columns: 42px 92px minmax(76px, 1fr) 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
+    .step-controls { display: grid; grid-template-columns: 42px 92px minmax(76px, 1fr) 42px 42px; align-items: center; gap: 14px; margin-top: auto; padding-top: 26px; }
     .step-button { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.24); border-radius: 50%; background: linear-gradient(145deg, #333830, #11130f); color: var(--radio-ink); box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 1px 1px 1px rgba(255,255,255,.12); cursor: pointer; font-size: 17px; transition: color .2s ease, border-color .2s ease; }
     .step-button:hover { border-color: var(--acid); color: var(--acid); }
+    .radio-toggle[aria-pressed="false"] { opacity: .38; }
+    .now-playing { margin: 10px 2px 0; min-height: 20px; font-size: 12px; font-weight: 700; letter-spacing: .05em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .now-playing.is-live { color: var(--ink); }
+    .now-playing.is-live::before { content: "● "; color: var(--orange); animation: np-pulse 1.6s ease-in-out infinite; }
+    @keyframes np-pulse { 50% { opacity: .35; } }
     .tune-knob { width: 92px; height: 92px; position: relative; border: 3px solid #0b0906; border-radius: 50%; background: repeating-conic-gradient(from -6deg, #3b342a 0deg 7deg, #211c14 7deg 14deg); box-shadow: 0 10px 22px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,.22), inset 0 -6px 10px rgba(0,0,0,.55), 0 0 0 5px #161310, 0 0 0 6px #57503f; cursor: grab; touch-action: none; transform: rotate(var(--knob-turn, -125deg)); transition: transform .35s cubic-bezier(.2,.75,.2,1); }
     .tune-knob:active { cursor: grabbing; }
     .tune-knob::before { content: ""; position: absolute; inset: 27%; border-radius: 50%; background: radial-gradient(circle at 38% 30%, #e3c078 0%, #a37c3a 52%, #6b4d22 100%); box-shadow: inset 0 2px 3px rgba(255,255,255,.55), inset 0 -2px 4px rgba(0,0,0,.45), 0 2px 5px rgba(0,0,0,.5); }
@@ -332,7 +337,7 @@
       .tuner-region { margin-top: 28px; }
       .broadcast { display: block; min-height: 0; } .tuner-console { min-height: 520px; padding: 24px 20px; border-width: 6px; }
       .station-readout { font-size: clamp(76px, 25vw, 110px); } .station-copy { margin-top: 17px; } .dial-wrap { margin-top: 24px; }
-      .step-controls { grid-template-columns: 36px 76px minmax(60px, 1fr) 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
+      .step-controls { grid-template-columns: 36px 76px minmax(60px, 1fr) 36px 36px; padding-top: 24px; } .step-button { width: 36px; height: 36px; } .tune-knob { width: 72px; height: 72px; }
       .signal .sig-label { display: none; }
       .stage { padding: 28px 0; } .stack { min-height: 450px; } .artist-card { min-height: 450px; }
       .front, .back { padding: 21px; } .card-title strong { font-size: clamp(52px, 17vw, 74px); } .back h3 { font-size: 43px; }
@@ -382,6 +387,7 @@
             <div class="station-readout"><span id="frequencyReadout">93.1</span><small>FM</small></div>
             <div class="station-copy"><strong class="station-day" id="stationDay">Tonight</strong><span class="station-detail" id="stationDetail">Granville Room · Downtown</span></div>
           </div>
+          <div class="now-playing" id="nowPlaying" role="status">Radio ready · tune in to play</div>
           <div class="dial-wrap">
             <div class="scale-rule" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108</span></div>
             <input class="dial" id="tunerDial" type="range" min="0" max="3" step="1" value="0" aria-label="Tune through this week's shows">
@@ -397,6 +403,7 @@
             <button class="tune-knob" id="tuneKnob" type="button" role="slider" aria-label="Tuning knob. Drag or use arrow keys to tune shows" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span aria-hidden="true"></span></button>
             <span class="signal" aria-hidden="true"><span class="sig-bars"><i></i><i></i><i></i><i></i></span><span class="sig-label">Signal strength</span></span>
             <button class="step-button" id="tuneNext" type="button" aria-label="Next show">→</button>
+            <button class="step-button radio-toggle" id="radioToggle" type="button" aria-label="Toggle radio autoplay" aria-pressed="true" title="Radio autoplay">📻</button>
           </div>
         </div>
         <div class="stage">
@@ -734,17 +741,19 @@
         });
       }
 
-      function ensureTracks(card) {
-        if (card._demo) { renderSongs(card, card._mode); return; }
-        if (card._tracksLoaded) { renderTopTracks(card); return; }
+      function ensureTracks(card, done) {
+        var finish = function () { if (done) { var cb = done; done = null; cb(); } };
+        if (card._demo) { renderSongs(card, card._mode); finish(); return; }
+        if (card._tracksLoaded) { renderTopTracks(card); finish(); return; }
         var list = card.querySelector('.song-list');
         var sid = card.dataset.spotifyId;
         if (!sid) {
           list.innerHTML = '<span class="song"><strong>Top tracks unavailable for this act</strong></span>';
+          finish();
           return;
         }
         if (card._tracksLoading) {
-          list.innerHTML = '<span class="song"><strong>Loading top tracks…</strong></span>';
+          if (done) card._pendingRadio = done;
           return;
         }
         card._tracksLoading = true;
@@ -755,14 +764,18 @@
             card._tracksLoading = false;
             card._tracksLoaded = true;
             card._trackObjs = (d.topTracks || []).map(function (t) {
-              return { name: t.name, id: trackIdFromUrl(t.spotifyUrl), url: t.spotifyUrl };
+              return { name: t.name, id: trackIdFromUrl(t.spotifyUrl), url: t.spotifyUrl, preview: t.previewUrl || null };
             }).filter(function (t) { return t.name; });
             if (d.image) setPhoto(card, d.image);
             renderTopTracks(card);
+            var pr = card._pendingRadio; card._pendingRadio = null; if (pr) pr();
+            finish();
           })
           .catch(function () {
             card._tracksLoading = false;
             list.innerHTML = '<span class="song"><strong>Couldn\u2019t load tracks — try again</strong></span>';
+            var pr = card._pendingRadio; card._pendingRadio = null; if (pr) pr();
+            finish();
           });
       }
 
@@ -796,6 +809,7 @@
         stopButtons.forEach(function (button) { button.setAttribute('aria-pressed', String(Number(button.dataset.index) === index)); });
         ensurePhoto(card);
         if (announce) showToast(card.dataset.frequency + ' FM · ' + card.dataset.artist);
+        if (announce) radioStartFor(card);
       }
 
       function bindCard(card) {
@@ -812,7 +826,7 @@
           if (event.target.closest('.close-card')) { event.stopPropagation(); closeCards(); return; }
           if (event.target.closest('.card-links a')) return;
           var songRow = event.target.closest('.song[data-track-id]');
-          if (songRow) { loadTrackPlayer(card, songRow.dataset.trackId); return; }
+          if (songRow) { radioStop(); loadTrackPlayer(card, songRow.dataset.trackId); return; }
           if (!card.classList.contains('is-selected') || card.classList.contains('is-flipped')) return;
           card.classList.add('is-flipped');
           card.setAttribute('aria-expanded', 'true');
@@ -933,6 +947,127 @@
         }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 3600000 });
       }
 
+      // ---- radio mode: tuning plays the act's top-track preview -------------------
+      // Browsers block audio before the first tap, so the first pointerdown
+      // anywhere unlocks sound; every tune after that plays like a real radio.
+      var radioAudio = document.createElement('audio');
+      radioAudio.preload = 'none';
+      document.body.appendChild(radioAudio);
+      var radioOn = true;
+      var radioUnlocked = false;
+      var radioQueue = [];
+      var radioQi = 0;
+      var radioArtist = '';
+      var radioTuneSeq = 0;
+      var nowPlayingEl = document.getElementById('nowPlaying');
+      var radioToggle = document.getElementById('radioToggle');
+
+      function setNowPlaying(text, live) {
+        if (!nowPlayingEl) return;
+        nowPlayingEl.textContent = text || '';
+        nowPlayingEl.classList.toggle('is-live', !!live);
+      }
+      function radioStop(silent) {
+        radioTuneSeq++;
+        try { radioAudio.pause(); } catch (e) {}
+        radioAudio.removeAttribute('src');
+        try { radioAudio.load(); } catch (e) {}
+        radioQueue = [];
+        radioQi = 0;
+        if (!silent) setNowPlaying(radioOn ? 'Radio on · tune to play' : 'Radio off', false);
+      }
+      // Spotify no longer returns 30s preview URLs, so radio mode matches each
+      // top track against the free iTunes Search API (no key, CORS-open) and
+      // plays its 30-second preview instead. Search is by title; the artist is
+      // cross-checked against the bill so co-headliner shows match the right act.
+      function itunesPreview(billArtists, title) {
+        var q = encodeURIComponent(title);
+        return fetch('https://itunes.apple.com/search?term=' + q + '&media=music&entity=song&limit=8')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var results = (d && d.results) || [];
+            var norm = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim(); };
+            var nt = norm(title);
+            var bill = (billArtists || []).map(norm).filter(Boolean);
+            var titleHit = function (r) {
+              var rn = norm(r.trackName);
+              return rn && (rn === nt || rn.indexOf(nt) === 0 || nt.indexOf(rn) === 0);
+            };
+            var artistHit = function (r) {
+              var ra = norm(r.artistName);
+              return ra && bill.some(function (b) { return ra === b || ra.indexOf(b) === 0 || b.indexOf(ra) === 0; });
+            };
+            var i, r;
+            for (i = 0; i < results.length; i++) { // title + bill artist match
+              r = results[i];
+              if (r.previewUrl && titleHit(r) && artistHit(r)) return { name: title, artist: r.artistName, preview: r.previewUrl };
+            }
+            for (i = 0; i < results.length; i++) { // title match, any artist
+              r = results[i];
+              if (r.previewUrl && titleHit(r)) return { name: r.trackName, artist: r.artistName, preview: r.previewUrl };
+            }
+            r = results[0]; // last resort: top result
+            if (r && r.previewUrl) return { name: r.trackName, artist: r.artistName, preview: r.previewUrl };
+            return null;
+          })
+          .catch(function () { return null; });
+      }
+      function radioPlayTrack() {
+        var t = radioQueue[radioQi];
+        if (!t) { setNowPlaying('No preview for this act', false); return; }
+        radioAudio.src = t.preview;
+        var p = null;
+        try { p = radioAudio.play(); } catch (e) { p = null; }
+        if (p && p.then) {
+          p.then(function () { setNowPlaying('\u266A ' + t.name + ' — ' + (t.artist || radioArtist), true); })
+           .catch(function () { setNowPlaying('Tap tune again to play', false); });
+        } else {
+          setNowPlaying('\u266A ' + t.name + ' — ' + (t.artist || radioArtist), true);
+        }
+      }
+      radioAudio.addEventListener('ended', function () {
+        radioQi++;
+        if (radioQi < radioQueue.length) radioPlayTrack();
+        else setNowPlaying('\u266A ' + radioArtist + ' · station ID', true);
+      });
+      function radioStartFor(card) {
+        if (!radioOn || !radioUnlocked || !card) return;
+        radioStop(true);
+        var myTune = ++radioTuneSeq;
+        if (card._demo) { setNowPlaying('Demo lineup · no audio', false); return; }
+        radioArtist = card.dataset.artist || '';
+        setNowPlaying('Tuning…', false);
+        ensureTracks(card, function () {
+          if (myTune !== radioTuneSeq) return; // user tuned away while loading
+          var tracks = (card._trackObjs || []).slice(0, 4);
+          var billArtists = (card._artists || []).map(function (a) { return a.name || a; });
+          var jobs = tracks.map(function (t) {
+            if (t.preview) return Promise.resolve({ name: t.name, artist: radioArtist, preview: t.preview });
+            return itunesPreview(billArtists, t.name);
+          });
+          Promise.all(jobs).then(function (previews) {
+            if (myTune !== radioTuneSeq) return; // user tuned away while resolving
+            radioQueue = previews.filter(Boolean);
+            radioQi = 0;
+            if (!radioQueue.length) { setNowPlaying('No preview · tap a track for Spotify', false); return; }
+            radioPlayTrack();
+          });
+        });
+      }
+      document.addEventListener('pointerdown', function unlockRadio() {
+        radioUnlocked = true;
+        document.removeEventListener('pointerdown', unlockRadio);
+      });
+      if (radioToggle) {
+        radioToggle.addEventListener('click', function (event) {
+          event.stopPropagation();
+          radioOn = !radioOn;
+          radioToggle.setAttribute('aria-pressed', String(radioOn));
+          if (!radioOn) { radioStop(); }
+          else if (cards[currentStation]) radioStartFor(cards[currentStation]);
+        });
+      }
+
       // ---- tuner mechanics (unchanged) ----------------------------------------
       dial.addEventListener('input', function () { tuneTo(dial.value, false); });
       dial.addEventListener('change', function () { tuneTo(dial.value, true); });
@@ -954,7 +1089,7 @@
         if (knobDragStart === null) return;
         knob.releasePointerCapture(event.pointerId);
         knobDragStart = null;
-        if (knobMoved && cards[currentStation]) showToast(cards[currentStation].dataset.frequency + ' FM · ' + cards[currentStation].dataset.artist);
+        if (knobMoved && cards[currentStation]) { showToast(cards[currentStation].dataset.frequency + ' FM · ' + cards[currentStation].dataset.artist); radioStartFor(cards[currentStation]); }
         window.setTimeout(function () { knobMoved = false; }, 0);
       });
       knob.addEventListener('click', function () {
